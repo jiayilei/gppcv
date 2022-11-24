@@ -2,10 +2,7 @@
 title: "gppcv Package"
 author: "Jiayi Lei"
 
-output: 
-  github_document:
-        toc: true
-        toc_depth: 4
+
   
 ---
 
