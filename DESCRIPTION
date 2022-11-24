@@ -1,9 +1,11 @@
 Package: standardGP
-Title: What the Package Does (One Line, Title Case)
+Title: Probabilistic Cross-Validation Estimators for Gaussian Process Regression
 Version: 0.0.0.9000
 Authors@R: 
     person("Jiayi", "Lei", , email = "jlei@tamu.edu", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Description: standardGP is a package that fits standardized Gaussian Progress regression via log marginal likelihood. The model will be trained with 
+              inputs of training data, covariance function, noise level, and the test input data. This package will output mean function, variance 
+              and the log marginal likelihood. This package contains a probabilistic cross-validation function to infer the hyperparameters. 
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
