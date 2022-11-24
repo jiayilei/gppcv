@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE,tidy='formatR', tidy.opts=list(width.cutoff = 
 ```
 
 
-## standar Gaussian Process Regression with Probabilistic Cross Validation, more flexible regression fitting
+## gppcv: more flexible regression fitting
 
 This package is developed to implement stantardized gaussian progress regression and use probabilistic cross validation to pick the best hyper parameters for gaussian progress regression models.
 
