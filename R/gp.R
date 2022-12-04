@@ -29,6 +29,13 @@ gpr <- function(X, y, k, sigma2, xt){
     stop("Sigma2 needs to be positive")
   }
 
+  # standardize inputs
+  sX <- scale(X)
+  sY <- scale(Y)
+  X <-matrix(sX, n, p)
+  Y <-matrix(sY, n, 1)
+  Xt <- (Xt - attr(s, which ="scaled:center"))/ attr(s, which ="scaled:scale")
+
   # covariance matrix: covariance evaluated at all pairs of training point
   K = matrix(rep(0,n*n), n,n)
   # covariance vector: covariance between test point and the n training points
@@ -51,7 +58,7 @@ gpr <- function(X, y, k, sigma2, xt){
   fs = t(ks) %*% alpha
 
   # find predictive variance
-  v = solve(v) %*% ks
+  v = solve(L) %*% ks
   Vfs = k(xt, xt) - crossprod(v)
 
   # calculate log marginal likelihood
@@ -59,3 +66,5 @@ gpr <- function(X, y, k, sigma2, xt){
 
   return (fs, Vfs, logp)
 }
+
+
