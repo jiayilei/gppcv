@@ -38,9 +38,11 @@ gpr <- function(X, y, k, sigma2, xt){
   ks = matrix(rep(0,n),n)
   for (i in (1:n)){
     for (j in (i:n)){
-      K[i,j] = k(X[i,], X[j,])
+      r = get_r(X[i,], X[j,])
+      K[i,j] = k(r)
     }
-    ks[i] = k(X[i,], xt)
+    r = get_r(X[i,], xt)
+    ks[i] = k(r)
   }
   tK = t(K)
   diag(tK) <- 0
@@ -51,11 +53,12 @@ gpr <- function(X, y, k, sigma2, xt){
 
   # find predictive mean
   alpha = solve(t(L)) %*% (solve(L) %*% y)
-  fs = t(ks) %*% alpha
+  fs = crossprod(ks, alpha)
 
   # find predictive variance
   v = solve(L) %*% ks
-  Vfs = k(xt, xt) - crossprod(v)
+  r = get_r(xt, xt)
+  Vfs = k(r) - crossprod(v)
 
   # calculate log marginal likelihood
   logp = -1/2 * crossprod(y, alpha) - sum(log(diag(L))) - n/2 * log(2*pi)
