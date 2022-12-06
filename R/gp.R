@@ -5,7 +5,7 @@
 #' @param y targets
 #' @param k covariance function
 #' @param sigma2 noise level
-#' @param xt test input, 1 dimensional test input data
+#' @param xt test input
 #'
 #' @return
 #'        fs mean function
@@ -18,6 +18,7 @@ gpr <- function(X, y, k, sigma2, xt){
   # compatibility check
   n = dim(X)[1]
   p = dim(X)[2]
+  nt = dim(Xt)[1]
 
   if (length(y) != n){
     stop("dimension of X and Y does not match")
@@ -31,34 +32,30 @@ gpr <- function(X, y, k, sigma2, xt){
 
   # standardize inputs
   standardized_out <- standardize(X, y, Xt, yt)
+  X = standardized_out$X
+  y = standardized_out$y
+  Xt = standardized_out$Xt
+  yt = standardized_out$yt
 
-  # covariance matrix: covariance evaluated at all pairs of training point
-  K = matrix(rep(0,n*n), n,n)
-  # covariance vector: covariance between test point and the n training points
-  ks = matrix(rep(0,n),n)
-  for (i in (1:n)){
-    for (j in (i:n)){
-      r = get_r(X[i,], X[j,])
-      K[i,j] = k(r)
-    }
-    r = get_r(X[i,], xt)
-    ks[i] = k(r)
-  }
-  tK = t(K)
-  diag(tK) <- 0
-  K = tK + K
+  # get K and Ks, covariance matrix
+  cov_out < covariance_mats(X, Xt)
+  K = cov_out$K
+  ks = cov_out$ks
 
   # cholesky factorization
   L = chol(K + sigma2 * diag(n))
 
   # find predictive mean
   alpha = solve(t(L)) %*% (solve(L) %*% y)
-  fs = crossprod(ks, alpha)
+  fs = ks %*% alpha
 
   # find predictive variance
-  v = solve(L) %*% ks
-  r = get_r(xt, xt)
-  Vfs = k(r) - crossprod(v)
+  v = solve(L) %*% t(ks)
+  r = matrix(rep(0, nt), nt)
+  for (i in 1:nt){
+    r[i] = get_r(xt[i,], xt[i,])
+  }
+  Vfs = k(r) - colSums(v^2)
 
   # calculate log marginal likelihood
   logp = -1/2 * crossprod(y, alpha) - sum(log(diag(L))) - n/2 * log(2*pi)
@@ -142,3 +139,33 @@ pick_kernel <- function (method = c('se', 'm', 'exp'), para_list){
   }
 
 }
+
+# get covariance_matrix of K and Ks
+covariance_mats <- function(X, Xt, k){
+  n = dim(X)[1]
+  p = dim(X)[2]
+  nt = dim(Xt)[1]
+
+  # covariance matrix: covariance evaluated at all pairs of training point
+  K = matrix(rep(0,n*n), n,n)
+  # covariance vector: covariance between test point and the n training points
+  ks = matrix(rep(0,nt * n), nt, n)
+  for (i in (1:n)){
+    for (j in (1:n)){
+      r = get_r(X[i,], X[j,])
+      K[i,j] = k(r)
+    }
+    for (k in (1: nt)){
+      r = get_r(X[i,], xt[k,])
+      ks[k,i] = k(r)
+    }
+
+  }
+  tK = t(K)
+  diag(tK) <- 0
+  K = tK + K
+
+  return (list(K = K, ks = ks))
+}
+
+
