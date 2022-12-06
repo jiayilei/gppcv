@@ -30,11 +30,7 @@ gpr <- function(X, y, k, sigma2, xt){
   }
 
   # standardize inputs
-  sX <- scale(X)
-  sY <- scale(Y)
-  X <-matrix(sX, n, p)
-  Y <-matrix(sY, n, 1)
-  Xt <- (Xt - attr(s, which ="scaled:center"))/ attr(s, which ="scaled:scale")
+  standardized_out <- standardize(X, y, Xt, yt)
 
   # covariance matrix: covariance evaluated at all pairs of training point
   K = matrix(rep(0,n*n), n,n)
@@ -68,3 +64,78 @@ gpr <- function(X, y, k, sigma2, xt){
 }
 
 
+# standardize input
+standardize <- function(X, y, Xt, yt){
+  n = dim(X)[1]
+  p = dim(X)[2]
+
+  sX <- scale(X)
+  sY <- scale(y)
+  X <-matrix(sX, n, p)
+  y <-matrix(sY, n, 1)
+  Xt <- (Xt - attr(sX, which ="scaled:center"))/ attr(sX, which ="scaled:scale")
+  yt <- (Yt - attr(sY, which ="scaled:center"))/ attr(sY, which ="scaled:scale")
+
+  return (list(X = X, y = y, Xt = Xt, yt = yt))
+}
+
+
+# returns Euclidean distance between two input data
+get_r <- function(x1, x2){
+  return (sqrt(sum((x1- x2)^2)))
+}
+
+
+# Square Exponential Kernel
+se_kernel <- function(l, r = 1){
+  fun <- function(r){
+    return (exp(-0.5 * (r/l)^2))
+  }
+  return (fun)
+}
+
+
+# Matern kernel
+matern_kernel <- function(l, v, r = 1){
+  fun <- function (r){
+    left <-  1 / gamma(v) / 2^(v-1)
+    mid <- (sqrt(2*v)/ l * r)^ v
+    right <- besselK(sqrt(2*v) * r / l, nu = v)
+    return (left * mid * right)
+  }
+  return (fun)
+}
+
+
+# exponential kernel
+exp_kernel <- function(l, r=1){
+  fun <- function(r){
+    return (exp(-r/l))
+  }
+  return (fun)
+}
+
+
+# pick the kernel
+pick_kernel <- function (method = c('se', 'm', 'exp'), para_list){
+  # if (method == 'se'){
+  #   return (se_kernel)
+  # }
+  # if (method == 'm'){
+  #   return (matern_kernel)
+  # }
+  # if (method == 'exp'){
+  #   return (exp_kernel)
+  # }
+
+  if (method == 'se'){
+    return (do.call(se_kernel, para_list))
+  }
+  if (method == 'm'){
+    return (do.call(matern_kernel, para_list))
+  }
+  if (method == 'exp'){
+    return (do.call(exp_kernel, para_list))
+  }
+
+}
