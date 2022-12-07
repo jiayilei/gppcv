@@ -181,4 +181,24 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
 
 }
 
+# cv
+gpr_cv <- function(X, y, k, sigma2, Xt, yt, num_folds){
+  n = dim(X)[1]
+  fold_ids <- sample((1:n) %% num_folds + 1, n)
 
+  nkernels <- length(k)
+  cv_folds <- matrix(rep(num_folds * nkernels), num_folds, nkernels)
+  for (fold in 1:num_folds) {
+    Xtrain <- X[fold_ids != fold, ]
+    ytrain <- Y[fold_ids != fold]
+
+    Xtest <- X[fold_ids == fold, ]
+    ytest <- Y[fold_ids == fold]
+
+    gpr_seq_out <- gpr_seq_kernels (Xtrain, ytrain, k, sigma2, Xtest, ytest)
+    cv_folds[fold,] <- t(gpr_seq_out)
+
+  }
+  cvm <- colMeans(cv_folds)
+  return (list(cmv = cmv, k=k))
+}
