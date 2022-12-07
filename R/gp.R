@@ -53,7 +53,7 @@ standardize <- function(X, y, Xt, yt){
   X <-matrix(sX, n, p)
   y <-matrix(sY, n, 1)
   Xt <- (Xt - attr(sX, which ="scaled:center"))/ attr(sX, which ="scaled:scale")
-  yt <- (Yt - attr(sY, which ="scaled:center"))/ attr(sY, which ="scaled:scale")
+  yt <- (yt - attr(sY, which ="scaled:center"))/ attr(sY, which ="scaled:scale")
 
   return (list(X = X, y = y, Xt = Xt, yt = yt))
 }
@@ -165,13 +165,15 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
   yt = standardized_out$yt
 
   # get K and Ks, covariance matrix
-  cov_out < covariance_mats(X, Xt, k)
-  K = cov_out$K
-  ks = cov_out$ks
+  # browser()
+
 
   # standardized gaussian process regression for each k
   mse <- matrix(rep(0, length(k)))
   for (i in 1 : length(k)){
+    cov_out < covariance_mats(X, Xt, k[i])
+    K = cov_out$K
+    ks = cov_out$ks
     gpr_out <- gpr_standardized(X, y, k[[i]], sigma2, Xt, yt, K, ks)
     # evaluate mse for each kernels
     mse[i] = sum((gpr_out$fs - yt)^2)/nt
@@ -182,7 +184,7 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
 }
 
 # cv
-gpr_cv <- function(X, y, k, sigma2, Xt, yt, num_folds){
+gpr_cv <- function(X, y, k, sigma2, num_folds){
   n = dim(X)[1]
   fold_ids <- sample((1:n) %% num_folds + 1, n)
 
@@ -190,12 +192,13 @@ gpr_cv <- function(X, y, k, sigma2, Xt, yt, num_folds){
   cv_folds <- matrix(rep(num_folds * nkernels), num_folds, nkernels)
   for (fold in 1:num_folds) {
     Xtrain <- X[fold_ids != fold, ]
-    ytrain <- Y[fold_ids != fold]
+    ytrain <- y[fold_ids != fold]
 
     Xtest <- X[fold_ids == fold, ]
-    ytest <- Y[fold_ids == fold]
+    ytest <- y[fold_ids == fold]
 
-    gpr_seq_out <- gpr_seq_kernels (Xtrain, ytrain, k, sigma2, Xtest, ytest)
+    # browser()
+    gpr_seq_out <- gpr_seq_kernels(Xtrain, ytrain, k, sigma2, Xtest, ytest)
     cv_folds[fold,] <- t(gpr_seq_out)
 
   }
