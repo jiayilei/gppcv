@@ -5,7 +5,8 @@
 #' @param y targets
 #' @param k covariance function
 #' @param sigma2 noise level
-#' @param xt test input
+#' @param xt test inputs
+#' @param yt test targets
 #'
 #' @return
 #'        fs mean function
@@ -14,33 +15,11 @@
 #' @export
 #'
 #' @examples
-gpr <- function(X, y, k, sigma2, xt){
+gpr_standardized <- function(X, y, k, sigma2, xt, yt, K, ks){
   # compatibility check
   n = dim(X)[1]
   p = dim(X)[2]
   nt = dim(Xt)[1]
-
-  if (length(y) != n){
-    stop("dimension of X and Y does not match")
-  }
-  if (dim(xt)[2] != p){
-    stop("dimension of X and Xt does not match")
-  }
-  if (sigma2 < 0){
-    stop("Sigma2 needs to be positive")
-  }
-
-  # standardize inputs
-  standardized_out <- standardize(X, y, Xt, yt)
-  X = standardized_out$X
-  y = standardized_out$y
-  Xt = standardized_out$Xt
-  yt = standardized_out$yt
-
-  # get K and Ks, covariance matrix
-  cov_out < covariance_mats(X, Xt)
-  K = cov_out$K
-  ks = cov_out$ks
 
   # cholesky factorization
   L = chol(K + sigma2 * diag(n))
@@ -118,15 +97,7 @@ exp_kernel <- function(l, r=1){
 
 # pick the kernel
 pick_kernel <- function (method = c('se', 'm', 'exp'), para_list){
-  # if (method == 'se'){
-  #   return (se_kernel)
-  # }
-  # if (method == 'm'){
-  #   return (matern_kernel)
-  # }
-  # if (method == 'exp'){
-  #   return (exp_kernel)
-  # }
+  # todo: check dimension of inputs
 
   if (method == 'se'){
     return (do.call(se_kernel, para_list))
@@ -166,6 +137,48 @@ covariance_mats <- function(X, Xt, k){
   K = tK + K
 
   return (list(K = K, ks = ks))
+}
+
+
+# sequence of k's to fit the model and compare different kernels performance
+gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
+  # compatibility check
+  n = dim(X)[1]
+  p = dim(X)[2]
+  nt = dim(Xt)[1]
+
+  if (length(y) != n){
+    stop("dimension of X and Y does not match")
+  }
+  if (dim(Xt)[2] != p){
+    stop("dimension of X and Xt does not match")
+  }
+  if (sigma2 < 0){
+    stop("Sigma2 needs to be positive")
+  }
+
+  # standardize inputs
+  standardized_out <- standardize(X, y, Xt, yt)
+  X = standardized_out$X
+  y = standardized_out$y
+  Xt = standardized_out$Xt
+  yt = standardized_out$yt
+
+  # get K and Ks, covariance matrix
+  cov_out < covariance_mats(X, Xt, k)
+  K = cov_out$K
+  ks = cov_out$ks
+
+  # standardized gaussian process regression for each k
+  mse <- matrix(rep(0, length(k)))
+  for (i in 1 : length(k)){
+    gpr_out <- gpr_standardized(X, y, k[[i]], sigma2, Xt, yt, K, ks)
+    # evaluate mse for each kernels
+    mse[i] = sum((gpr_out$fs - yt)^2)/nt
+
+  }
+  return (list(k=k, mse = mse))
+
 }
 
 
