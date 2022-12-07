@@ -15,13 +15,14 @@
 #' @export
 #'
 #' @examples
-gpr_standardized <- function(X, y, k, sigma2, xt, yt, K, ks){
+gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks){
   # compatibility check
   n = dim(X)[1]
   p = dim(X)[2]
   nt = dim(Xt)[1]
 
   # cholesky factorization
+  browser()
   L = chol(K + sigma2 * diag(n))
 
   # find predictive mean
@@ -32,9 +33,9 @@ gpr_standardized <- function(X, y, k, sigma2, xt, yt, K, ks){
   v = solve(L) %*% t(ks)
   r = matrix(rep(0, nt), nt)
   for (i in 1:nt){
-    r[i] = get_r(xt[i,], xt[i,])
+    r[i] = get_r(Xt[i,], Xt[i,])
   }
-  Vfs = k(r) - colSums(v^2)
+  Vfs = k[[1]](r) - colSums(v^2)
 
   # calculate log marginal likelihood
   logp = -1/2 * crossprod(y, alpha) - sum(log(diag(L))) - n/2 * log(2*pi)
@@ -124,11 +125,11 @@ covariance_mats <- function(X, Xt, k){
   for (i in (1:n)){
     for (j in (1:n)){
       r = get_r(X[i,], X[j,])
-      K[i,j] = k(r)
+      K[i,j] = k[[1]](r)
     }
-    for (k in (1: nt)){
-      r = get_r(X[i,], xt[k,])
-      ks[k,i] = k(r)
+    for (m in (1: nt)){
+      r = get_r(X[i,], Xt[m,])
+      ks[m,i] = k[[1]](r)
     }
 
   }
@@ -165,13 +166,13 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
   yt = standardized_out$yt
 
   # get K and Ks, covariance matrix
-  # browser()
+
 
 
   # standardized gaussian process regression for each k
   mse <- matrix(rep(0, length(k)))
   for (i in 1 : length(k)){
-    cov_out < covariance_mats(X, Xt, k[i])
+    cov_out <- covariance_mats(X, Xt, k[i])
     K = cov_out$K
     ks = cov_out$ks
     gpr_out <- gpr_standardized(X, y, k[[i]], sigma2, Xt, yt, K, ks)
@@ -197,7 +198,6 @@ gpr_cv <- function(X, y, k, sigma2, num_folds){
     Xtest <- X[fold_ids == fold, ]
     ytest <- y[fold_ids == fold]
 
-    # browser()
     gpr_seq_out <- gpr_seq_kernels(Xtrain, ytrain, k, sigma2, Xtest, ytest)
     cv_folds[fold,] <- t(gpr_seq_out)
 
