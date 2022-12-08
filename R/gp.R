@@ -22,7 +22,7 @@ gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks){
   nt = dim(Xt)[1]
 
   # cholesky factorization
-  browser()
+  # browser()
   L = chol(K + sigma2 * diag(n))
 
   # find predictive mean
@@ -35,12 +35,12 @@ gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks){
   for (i in 1:nt){
     r[i] = get_r(Xt[i,], Xt[i,])
   }
-  Vfs = k[[1]](r) - colSums(v^2)
+  Vfs = k(r) - colSums(v^2)
 
   # calculate log marginal likelihood
   logp = -1/2 * crossprod(y, alpha) - sum(log(diag(L))) - n/2 * log(2*pi)
 
-  return (fs, Vfs, logp)
+  return (list(fs = fs, Vfs = Vfs, logp = logp))
 }
 
 
