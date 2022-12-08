@@ -1,12 +1,13 @@
-# source("utilities.R")
+#
 #' Title
-#'
 #' @param X inputs
 #' @param y targets
 #' @param k covariance function
 #' @param sigma2 noise level
 #' @param xt test inputs
 #' @param yt test targets
+#' @param K covariance matrix between training data
+#' @param ks covariance matrix between testing data and training data
 #'
 #' @return
 #'        fs mean function
@@ -45,6 +46,21 @@ gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks){
 
 
 # standardize input
+#' Title
+#'
+#' @param X original training inputs
+#' @param y original training targets
+#' @param Xt original testing inputs
+#' @param yt original testing targets
+#'
+#' @return
+#'        X scaled training inputs
+#'        y scaled training targets
+#'        Xt scaled testing inputs
+#'        yt scaled testing targets
+#' @export
+#'
+#' @examples
 standardize <- function(X, y, Xt, yt){
   n = dim(X)[1]
   p = dim(X)[2]
@@ -60,13 +76,31 @@ standardize <- function(X, y, Xt, yt){
 }
 
 
-# returns Euclidean distance between two input data
+#
+#' Title Returns Euclidean distance between two input data
+#'
+#' @param x1 first data
+#' @param x2 second data
+#'
+#' @return r euclidean distance between first data and the second data
+#' @export
+#'
+#' @examples
 get_r <- function(x1, x2){
   return (sqrt(sum((x1- x2)^2)))
 }
 
 
-# Square Exponential Kernel
+#
+#' Title Square Exponential Kernel
+#'
+#' @param l length scale parameter of squared exponential kernel
+#' @param r euclidean distance between two data points
+#'
+#' @return covariance function with fixed hyperperameter l
+#' @export
+#'
+#' @examples
 se_kernel <- function(l, r = 1){
   fun <- function(r){
     return (exp(-0.5 * (r/l)^2))
@@ -76,6 +110,16 @@ se_kernel <- function(l, r = 1){
 
 
 # Matern kernel
+#' Title Matern kernel
+#'
+#' @param l length-scale
+#' @param v smoothness
+#' @param r euclidean distance between two data points
+#'
+#' @return covariance function with fixed parameter l and v
+#' @export
+#'
+#' @examples
 matern_kernel <- function(l, v, r = 1){
   fun <- function (r){
     left <-  1 / gamma(v) / 2^(v-1)
@@ -86,8 +130,17 @@ matern_kernel <- function(l, v, r = 1){
   return (fun)
 }
 
-
 # exponential kernel
+#
+#' Exponential kernel
+#'
+#' @param l length scale
+#' @param r euclidean distance between two data points
+#'
+#' @return covariance function with fixed parameter l
+#' @export
+#'
+#' @examples
 exp_kernel <- function(l, r=1){
   fun <- function(r){
     return (exp(-r/l))
@@ -97,16 +150,33 @@ exp_kernel <- function(l, r=1){
 
 
 # pick the kernel
-pick_kernel <- function (method = c('se', 'm', 'exp'), para_list){
-  # todo: check dimension of inputs
-
+#' Title
+#'
+#' @param method a string indicates what function class to pick
+#' @param para_list a list of parameter that will be pass on to the kernel function
+#'
+#' @return return one of the kernel functions with input parameter list
+#' @export return kernel functions with hyperparemeters
+#'
+#' @examples
+pick_kernel <- function (para_list, method = c('se', 'm', 'exp')){
+  method = match.arg(method)
   if (method == 'se'){
+    if (length(para_list) != 1){
+      stop("squared exponential kernel needs 1 parameter")
+    }
     return (do.call(se_kernel, para_list))
   }
   if (method == 'm'){
+    if (length(para_list) != 2){
+      stop("matern kernel needs 2 parameters")
+      }
     return (do.call(matern_kernel, para_list))
   }
   if (method == 'exp'){
+    if (length(para_list) != 1){
+      stop("exponential kernel needs 1 parameter")
+    }
     return (do.call(exp_kernel, para_list))
   }
 
