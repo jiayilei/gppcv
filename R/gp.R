@@ -199,9 +199,10 @@ gpr_cv <- function(X, y, k, sigma2, num_folds){
     ytest <- y[fold_ids == fold]
 
     gpr_seq_out <- gpr_seq_kernels(Xtrain, ytrain, k, sigma2, Xtest, ytest)
-    cv_folds[fold,] <- t(gpr_seq_out)
+    cv_folds[fold] <- gpr_seq_out$mse
 
   }
+  browser()
   cvm <- colMeans(cv_folds)
-  return (list(cmv = cmv, k=k))
+  return (list(cvm = cvm, k=k))
 }
