@@ -182,7 +182,20 @@ pick_kernel <- function (para_list, method = c('se', 'm', 'exp')){
 
 }
 
-# get covariance_matrix of K and Ks
+#
+#' Covariance Matrix
+#' gets covariance_matrix of K and Ks
+#'
+#' @param X training inputs
+#' @param Xt testing inputs
+#' @param k covariance function
+#'
+#' @return
+#'     K covariance matrix of training input
+#'     Ks covariance matrix of trainign data and test data
+#' @export
+#'
+#' @examples
 covariance_mats <- function(X, Xt, k){
 
   n = dim(X)[1]
@@ -214,6 +227,21 @@ covariance_mats <- function(X, Xt, k){
 
 
 # sequence of k's to fit the model and compare different kernels performance
+#' Title
+#'
+#' @param X training inputs
+#' @param y training targets
+#' @param k list of covariance functions
+#' @param sigma2 noise level
+#' @param Xt testing inputs
+#' @param yt testing targets
+#'
+#' @return
+#'        k list of covariance functions, same as input
+#'        mse mean square errors for each covariance function
+#' @export
+#'
+#' @examples
 gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
   # compatibility check
   n = dim(X)[1]
@@ -258,6 +286,20 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
 }
 
 # cv
+#' Gaussian Process Regression Cross Validation
+#'
+#' @param X training inputs
+#' @param y training targets
+#' @param k list of kernels
+#' @param sigma2 noise level
+#' @param num_folds number of folds
+#'
+#' @return
+#'        cvm average mean square errors for each kernels
+#'        k original kernels
+#' @export
+#'
+#' @examples
 gpr_cv <- function(X, y, k, sigma2, num_folds){
   n = dim(X)[1]
   fold_ids <- sample((1:n) %% num_folds + 1, n)
