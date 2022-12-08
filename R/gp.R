@@ -114,6 +114,7 @@ pick_kernel <- function (method = c('se', 'm', 'exp'), para_list){
 
 # get covariance_matrix of K and Ks
 covariance_mats <- function(X, Xt, k){
+
   n = dim(X)[1]
   p = dim(X)[2]
   nt = dim(Xt)[1]
@@ -122,14 +123,15 @@ covariance_mats <- function(X, Xt, k){
   K = matrix(rep(0,n*n), n,n)
   # covariance vector: covariance between test point and the n training points
   ks = matrix(rep(0,nt * n), nt, n)
+
   for (i in (1:n)){
     for (j in (1:n)){
       r = get_r(X[i,], X[j,])
-      K[i,j] = k[[1]](r)
+      K[i,j] = k(r)
     }
     for (m in (1: nt)){
       r = get_r(X[i,], Xt[m,])
-      ks[m,i] = k[[1]](r)
+      ks[m,i] = k(r)
     }
 
   }
@@ -172,10 +174,11 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
   # standardized gaussian process regression for each k
   mse <- matrix(rep(0, length(k)))
   for (i in 1 : length(k)){
-    cov_out <- covariance_mats(X, Xt, k[i])
+    if (length(k) == 1) {k_single = k} else {k_single = k[[i]]}
+    cov_out <- covariance_mats(X, Xt, k_single)
     K = cov_out$K
     ks = cov_out$ks
-    gpr_out <- gpr_standardized(X, y, k[[i]], sigma2, Xt, yt, K, ks)
+    gpr_out <- gpr_standardized(X, y, k_single, sigma2, Xt, yt, K, ks)
     # evaluate mse for each kernels
     mse[i] = sum((gpr_out$fs - yt)^2)/nt
 
@@ -202,7 +205,6 @@ gpr_cv <- function(X, y, k, sigma2, num_folds){
     cv_folds[fold] <- gpr_seq_out$mse
 
   }
-  browser()
   cvm <- colMeans(cv_folds)
   return (list(cvm = cvm, k=k))
 }
