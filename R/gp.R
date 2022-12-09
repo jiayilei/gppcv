@@ -208,12 +208,12 @@ exp_kernel <- function(l, r=1){
 
 #
 #' pick the kernel
-#' Retruns the kernel
+#' return kernel functions with hyperparemeters
 #' @param method a string indicates what function class to pick
 #' @param para_list a list of parameter that will be pass on to the kernel function
 #'
 #' @return return one of the kernel functions with input parameter list
-#' @export return kernel functions with hyperparemeters
+#' @export
 #'
 #' @examples
 #' pick_kernel(list(1,2), 'm')
@@ -225,19 +225,19 @@ pick_kernel <- function (para_list, method = c('se', 'm', 'exp')){
       stop("squared exponential kernel needs 1 parameter")
     }
     return (do.call(se_kernel, para_list))
-  }
-  if (method == 'm'){
+  } else if (method == 'm'){
     if (length(para_list) != 2){
       stop("matern kernel needs 2 parameters")
       }
     return (do.call(matern_kernel, para_list))
-  }
-  if (method == 'exp'){
+  } else if (method == 'exp'){
     if (length(para_list) != 1){
       stop("exponential kernel needs 1 parameter")
     }
     return (do.call(exp_kernel, para_list))
-  }
+  }else {
+    return (do.call(se_kernel, para_list))
+    }
 
 }
 
