@@ -407,6 +407,10 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
 #' gpr_cv(X, y, k, sigma2, num_folds)
 gpr_cv <- function(X, y, k, sigma2, num_folds){
   n = dim(X)[1]
+  if (n != dim(matrix(y))[1]){
+    stop("Dimension of X and y does not match!")
+  }
+
   fold_ids <- sample((1:n) %% num_folds + 1, n)
 
   nkernels <- length(k)
