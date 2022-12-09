@@ -1,5 +1,5 @@
 #
-#' Title
+#' Gaussian Process Regression with Standardized Inputs
 #' @param X inputs
 #' @param y targets
 #' @param k covariance function
@@ -16,6 +16,43 @@
 #' @export
 #'
 #' @examples
+#' n = 10
+#' p = 3
+#' nt = 4
+#' X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+#' y = matrix(rnorm(n), n, 1)
+#' Xt <- matrix(rnorm(nt*p, 0, 0.3), nt, p)
+#' yt = matrix(rnorm(nt), nt, 1)
+#' num_folds=3
+#' sigma2 = 10
+#'
+#'
+#' k <- function(r){
+#'   return (exp(-0.5 * (r/4)^2))
+#' }
+#'
+#' # covariance matrix: covariance evaluated at all pairs of training point
+#'  K = matrix(rep(0,n*n), n,n)
+#'  # covariance vector: covariance between test point and the n training points
+#'  ks = matrix(rep(0,nt * n), nt, n)
+
+#'  for (i in (1:n)){
+#'    for (j in (1:n)){
+#'      r = get_r(X[i,], X[j,])
+#'      K[i,j] = k(r)
+#'    }
+#'    for (m in (1: nt)){
+#'      r = get_r(X[i,], Xt[m,])
+#'      ks[m,i] = k(r)
+#'    }
+#'  }
+#'  tK = t(K)
+#'  diag(tK) <- 0
+#'  K = tK + K
+#'
+#'
+#' gpr_standardized(X, y, k, sigma2, Xt, yt, K, ks)
+#'
 gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks){
   # compatibility check
   n = dim(X)[1]
@@ -45,8 +82,7 @@ gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks){
 }
 
 
-# standardize input
-#' Title
+#' Standardize Input
 #'
 #' @param X original training inputs
 #' @param y original training targets
@@ -61,6 +97,16 @@ gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks){
 #' @export
 #'
 #' @examples
+#' n = 10
+#' p = 3
+#' nt = 4
+#' X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+#' y = matrix(rnorm(n), n, 1)
+#' Xt <- matrix(rnorm(nt*p, 0, 0.3), nt, p)
+#' yt = matrix(rnorm(nt), nt, 1)
+#' standardize(X, y, Xt, yt)
+#'
+#'
 standardize <- function(X, y, Xt, yt){
   n = dim(X)[1]
   p = dim(X)[2]
@@ -77,7 +123,7 @@ standardize <- function(X, y, Xt, yt){
 
 
 #
-#' Title Returns Euclidean distance between two input data
+#' Returns Euclidean distance between two input data
 #'
 #' @param x1 first data
 #' @param x2 second data
@@ -86,13 +132,16 @@ standardize <- function(X, y, Xt, yt){
 #' @export
 #'
 #' @examples
+#' x1 = matrix(rnorm(9))
+#' x2 = matrix(rnorm(9))
+#' get_r(x1, x2)
 get_r <- function(x1, x2){
   return (sqrt(sum((x1- x2)^2)))
 }
 
 
 #
-#' Title Square Exponential Kernel
+#' Square Exponential Kernel
 #'
 #' @param l length scale parameter of squared exponential kernel
 #' @param r euclidean distance between two data points
@@ -101,7 +150,10 @@ get_r <- function(x1, x2){
 #' @export
 #'
 #' @examples
+#' l = 3
+#' se_kernel(3)
 se_kernel <- function(l, r = 1){
+  if (l <=0){stop("l needs to be positive")}
   fun <- function(r){
     return (exp(-0.5 * (r/l)^2))
   }
@@ -109,8 +161,7 @@ se_kernel <- function(l, r = 1){
 }
 
 
-# Matern kernel
-#' Title Matern kernel
+#' Matern kernel
 #'
 #' @param l length-scale
 #' @param v smoothness
@@ -120,7 +171,11 @@ se_kernel <- function(l, r = 1){
 #' @export
 #'
 #' @examples
+#' matern_kernel(3, 2.5)
+#' matern_kernel(1, 1.5)
 matern_kernel <- function(l, v, r = 1){
+  if (l <=0){stop("l needs to be positive")}
+  if (v <=0){stop("v needs to be positive")}
   fun <- function (r){
     left <-  1 / gamma(v) / 2^(v-1)
     mid <- (sqrt(2*v)/ l * r)^ v
@@ -130,8 +185,7 @@ matern_kernel <- function(l, v, r = 1){
   return (fun)
 }
 
-# exponential kernel
-#
+
 #' Exponential kernel
 #'
 #' @param l length scale
@@ -141,7 +195,10 @@ matern_kernel <- function(l, v, r = 1){
 #' @export
 #'
 #' @examples
+#' exp_kernel(3)
+#' exp_kernel(3.5)
 exp_kernel <- function(l, r=1){
+  if (l <=0){stop("l needs to be positive")}
   fun <- function(r){
     return (exp(-r/l))
   }
@@ -149,9 +206,9 @@ exp_kernel <- function(l, r=1){
 }
 
 
-# pick the kernel
-#' Title
-#'
+#
+#' pick the kernel
+#' Retruns the kernel
 #' @param method a string indicates what function class to pick
 #' @param para_list a list of parameter that will be pass on to the kernel function
 #'
@@ -159,6 +216,8 @@ exp_kernel <- function(l, r=1){
 #' @export return kernel functions with hyperparemeters
 #'
 #' @examples
+#' pick_kernel(list(1,2), 'm')
+#' pick_kernel(list(3), 'se')
 pick_kernel <- function (para_list, method = c('se', 'm', 'exp')){
   method = match.arg(method)
   if (method == 'se'){
@@ -196,6 +255,15 @@ pick_kernel <- function (para_list, method = c('se', 'm', 'exp')){
 #' @export
 #'
 #' @examples
+#' k <- function(r){
+#'   return (exp(-0.5 * (r/4)^2))
+#' }
+#' n = 10
+#' p = 3
+#' nt = 4
+#' X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+#' Xt <- matrix(rnorm(nt*p, 0, 0.3), nt, p)
+#'
 covariance_mats <- function(X, Xt, k){
 
   n = dim(X)[1]
@@ -227,7 +295,7 @@ covariance_mats <- function(X, Xt, k){
 
 
 # sequence of k's to fit the model and compare different kernels performance
-#' Title
+#' Gaussian Process Regression for a sequence of kernels
 #'
 #' @param X training inputs
 #' @param y training targets
@@ -242,6 +310,27 @@ covariance_mats <- function(X, Xt, k){
 #' @export
 #'
 #' @examples
+#' n = 10
+#' p = 3
+#' nt = 4
+#' X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+#' y = matrix(rnorm(n), n, 1)
+#' Xt <- matrix(rnorm(nt*p, 0, 0.3), nt, p)
+#' yt = matrix(rnorm(nt), nt, 1)
+#' num_folds=3
+#' sigma2 = 10
+#'
+#'
+#' k1 <- function(r){
+#'   return (exp(-0.5 * (r/4)^2))
+#' }
+#'
+#' k2 <- function(r){
+#'   return (exp(-r/3.5))
+#' }
+#' k = c(k1, k2)
+#' gpr_seq_kernels(X, y, k, sigma2, Xt, yt)
+#'
 gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
   # compatibility check
   n = dim(X)[1]
@@ -285,7 +374,7 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
 
 }
 
-# cv
+#
 #' Gaussian Process Regression Cross Validation
 #'
 #' @param X training inputs
@@ -300,6 +389,22 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
 #' @export
 #'
 #' @examples
+#' n = 100
+#' p = 3
+#' nt = 4
+#' X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+#' y = matrix(rnorm(n), n, 1)
+#' sigma2 = 10
+#' k1 <- function(r){
+#'   return (exp(-0.5 * (r/4)^2))
+#' }
+#'
+#' k2 <- function(r){
+#'   return (exp(-r/3.5))
+#' }
+#' k = c(k1, k2)
+#' num_folds = 5
+#' gpr_cv(X, y, k, sigma2, num_folds)
 gpr_cv <- function(X, y, k, sigma2, num_folds){
   n = dim(X)[1]
   fold_ids <- sample((1:n) %% num_folds + 1, n)
