@@ -423,8 +423,10 @@ gpr_cv <- function(X, y, k, sigma2, num_folds, fold_ids = NULL){
     stop("Dimension of X and y does not match!")
   }
   # get a list of fold_ids if it is not given
-  if (is.null(fold_ids)) {
+  if (is.null(fold_ids) && !(is.null(num_folds))) {
     fold_ids <- sample((1:n) %% num_folds + 1, n)
+  }else {
+    num_folds = max(fold_ids)
   }
 
   nkernels <- length(k)
