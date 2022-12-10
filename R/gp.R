@@ -347,13 +347,16 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
   nt = dim(Xt)[1]
 
   if (length(y) != n){
-    stop("Dimension of X and Y does not match")
+    stop("Dimensions of X and y do not match!")
   }
   if (dim(Xt)[2] != p){
-    stop("dimension of X and Xt does not match")
+    stop("Dimensions of X and Xt do not match!")
+  }
+  if (length(yt) != nt){
+    stop("Dimensions of yt and Xt do not match!")
   }
   if (sigma2 < 0){
-    stop("Sigma2 needs to be positive")
+    stop("Sigma2 needs to be positive!")
   }
 
   # standardize inputs
@@ -365,8 +368,6 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
 
   # get K and Ks, covariance matrix
 
-
-
   # standardized gaussian process regression for each k
   mse <- matrix(rep(0, length(k)))
   for (i in 1 : length(k)){
@@ -377,10 +378,7 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
     gpr_out <- gpr_standardized(X, y, k_single, sigma2, Xt, yt, K, ks)
     # evaluate mse for each kernels
     mse[i] = sum((gpr_out$fs - yt)^2)/nt
-
   }
-
-
   return (list(k=k, mse = mse))
 
 }
