@@ -4,7 +4,7 @@
 #' @param y targets
 #' @param k covariance function
 #' @param sigma2 noise level
-#' @param xt test inputs
+#' @param Xt test inputs
 #' @param yt test targets
 #' @param K covariance matrix between training data
 #' @param ks covariance matrix between testing data and training data
@@ -136,7 +136,10 @@ standardize <- function(X, y, Xt, yt){
 #' x2 = matrix(rnorm(9))
 #' get_r(x1, x2)
 get_r <- function(x1, x2){
-  return (sqrt(sum((x1- x2)^2)))
+  if (length(x1) != length(x2)){
+    stop("Dimensions of x1 and x2 do not match!")
+  }
+  return (sqrt(sum((x1 - x2)^2)))
 }
 
 
@@ -236,7 +239,7 @@ pick_kernel <- function (para_list, method = c('se', 'm', 'exp')){
     }
     return (do.call(exp_kernel, para_list))
   }else {
-    return (do.call(se_kernel, para_list))
+    return (se_kernel(1))
     }
 
 }
@@ -270,22 +273,28 @@ covariance_mats <- function(X, Xt, k){
   p = dim(X)[2]
   nt = dim(Xt)[1]
 
+  if (p != dim(Xt)[2]){
+    stop("Dimensions of X and Xt do not match!")
+  }
+
   # covariance matrix: covariance evaluated at all pairs of training point
   K = matrix(rep(0,n*n), n,n)
-  # covariance vector: covariance between test point and the n training points
-  ks = matrix(rep(0,nt * n), nt, n)
+  # covariance vector: covariance between test point and the n training points and variance of test data points
+  ks = matrix(rep(0, nt * n), nt, n)
 
   for (i in (1:n)){
-    for (j in (1:n)){
+    # covariance between training data
+    for (j in (i:n)){
       r = get_r(X[i,], X[j,])
       K[i,j] = k(r)
     }
+    # covariance between test data and training data
     for (m in (1: nt)){
       r = get_r(X[i,], Xt[m,])
       ks[m,i] = k(r)
     }
-
   }
+
   tK = t(K)
   diag(tK) <- 0
   K = tK + K
@@ -338,7 +347,7 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
   nt = dim(Xt)[1]
 
   if (length(y) != n){
-    stop("dimension of X and Y does not match")
+    stop("Dimension of X and Y does not match")
   }
   if (dim(Xt)[2] != p){
     stop("dimension of X and Xt does not match")
@@ -370,6 +379,8 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
     mse[i] = sum((gpr_out$fs - yt)^2)/nt
 
   }
+
+
   return (list(k=k, mse = mse))
 
 }
@@ -416,16 +427,19 @@ gpr_cv <- function(X, y, k, sigma2, num_folds){
   nkernels <- length(k)
   cv_folds <- matrix(rep(num_folds * nkernels), num_folds, nkernels)
   for (fold in 1:num_folds) {
+    # split data into training set and testing set
     Xtrain <- X[fold_ids != fold, ]
     ytrain <- y[fold_ids != fold]
 
     Xtest <- X[fold_ids == fold, ]
     ytest <- y[fold_ids == fold]
 
+    # train models with sequence of kernels
     gpr_seq_out <- gpr_seq_kernels(Xtrain, ytrain, k, sigma2, Xtest, ytest)
     cv_folds[fold] <- gpr_seq_out$mse
 
   }
+  # take avg. mse of each kernels
   cvm <- colMeans(cv_folds)
   return (list(cvm = cvm, k=k))
 }
