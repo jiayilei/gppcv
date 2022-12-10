@@ -37,3 +37,47 @@ test_that("test get_r", {
 })
 
 
+test_that("test gpr_cv", {
+  n = 50 # number of inputs
+  p = 10 # number of features
+  n_kernels = 3 # number of kernels
+  X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+  y <- matrix(rnorm(n), n, 1)
+  num_folds=3
+  fold_ids <- sample((1:n) %% num_folds + 1, n)
+  sigma2 = 10
+  k = c(se_kernel(3), se_kernel(3))
+  # function output
+  out <- gpr_cv(X, y, k, sigma2, num_folds, fold_ids)
+
+  # manual calculation
+  nkernels <- length(k)
+  cv_folds <- matrix(rep(0, num_folds * nkernels), num_folds, nkernels)
+  for (fold in 1:num_folds) {
+    # split data into training set and testing set
+    Xtrain <- X[fold_ids != fold, ]
+    ytrain <- y[fold_ids != fold]
+
+    Xtest <- X[fold_ids == fold, ]
+    ytest <- y[fold_ids == fold]
+
+    # train models with sequence of kernels
+    gpr_seq_out <- gpr_seq_kernels(Xtrain, ytrain, k, sigma2, Xtest, ytest)
+    # browser()
+    cv_folds[fold,] <- t(gpr_seq_out$mse)
+
+  }
+  # take avg. mse of each kernels
+  cvm <- colMeans(cv_folds)
+
+  # check and compare
+  expect_equal(out$cvm, cvm)
+
+  ## test dimension check
+  y_e <- matrix(rnorm(2*n), 2*n, 1)
+  expect_error(gpr_cv(X, y_e, k, sigma2, num_folds, fold_ids), "Dimension of X and y does not match!")
+
+})
+
+
+
