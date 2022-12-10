@@ -79,5 +79,56 @@ test_that("test gpr_cv", {
 
 })
 
+test_that("test gpr_seq_kernels", {
+  # intended inputs
+  n = 100
+  p = 10
+  nt = 50
+  X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+  Xt <- matrix(rnorm(nt*p, 0), nt, p)
+  y <- matrix(rnorm(n), n, 1)
+  yt <- matrix(rnorm(nt), nt, 1)
+  k = c(se_kernel(3), se_kernel(3))
+  sigma2 <- 5
 
+  # inputs used to test dimension checks
+  Xte <- matrix(rnorm( nt *5, 0, 0.3), nt, 5)
+  ye <- matrix(rnorm(nt), nt, 1)
+  yte <- matrix(rnorm(0.8*nt), 0.8*nt, 1)
+  sigma2e <- -1
+
+  # test dimension checks
+  expect_error(gpr_seq_kernels(X, y, k, sigma2, Xte, yt), "Dimensions of X and Xt do not match!")
+  expect_error(gpr_seq_kernels(X, ye, k, sigma2, Xt, yt), "Dimensions of X and y do not match!")
+  expect_error(gpr_seq_kernels(X, y, k, sigma2, Xt, yte), "Dimensions of yt and Xt do not match!")
+  expect_error(gpr_seq_kernels(X, y, k, sigma2e, Xt, yt), "Sigma2 needs to be positive!")
+
+  # output from the function
+  out <- gpr_seq_kernels(X, y, k, sigma2, Xt, yt)
+
+  ##  manual calcuations
+  # standardize inputs
+  standardized_out <- standardize(X, y, Xt, yt)
+  X = standardized_out$X
+  y = standardized_out$y
+  Xt = standardized_out$Xt
+  yt = standardized_out$yt
+
+  # get K and Ks, covariance matrix
+
+  # standardized gaussian process regression for each k
+  mse <- matrix(rep(0, length(k)))
+  for (i in 1 : length(k)){
+    if (length(k) == 1) {k_single = k} else {k_single = k[[i]]}
+    cov_out <- covariance_mats(X, Xt, k_single)
+    K = cov_out$K
+    ks = cov_out$ks
+    gpr_out <- gpr_standardized(X, y, k_single, sigma2, Xt, yt, K, ks)
+    # evaluate mse for each kernels
+    mse[i] = sum((gpr_out$fs - yt)^2)/nt
+  }
+
+  expect_equal(out$mse, mse)
+
+})
 
