@@ -393,6 +393,7 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
 #' @param k list of kernels
 #' @param sigma2 noise level
 #' @param num_folds number of folds
+#' @param fold_ids list of ids to indicate folds
 #'
 #' @return
 #'        cvm average mean square errors for each kernels
@@ -416,16 +417,18 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
 #' k = c(k1, k2)
 #' num_folds = 5
 #' gpr_cv(X, y, k, sigma2, num_folds)
-gpr_cv <- function(X, y, k, sigma2, num_folds){
+gpr_cv <- function(X, y, k, sigma2, num_folds, fold_ids = NULL){
   n = dim(X)[1]
   if (n != dim(matrix(y))[1]){
     stop("Dimension of X and y does not match!")
   }
-
-  fold_ids <- sample((1:n) %% num_folds + 1, n)
+  # get a list of fold_ids if it is not given
+  if (is.null(fold_ids)) {
+    fold_ids <- sample((1:n) %% num_folds + 1, n)
+  }
 
   nkernels <- length(k)
-  cv_folds <- matrix(rep(num_folds * nkernels), num_folds, nkernels)
+  cv_folds <- matrix(rep(0, num_folds * nkernels), num_folds, nkernels)
   for (fold in 1:num_folds) {
     # split data into training set and testing set
     Xtrain <- X[fold_ids != fold, ]
@@ -436,7 +439,8 @@ gpr_cv <- function(X, y, k, sigma2, num_folds){
 
     # train models with sequence of kernels
     gpr_seq_out <- gpr_seq_kernels(Xtrain, ytrain, k, sigma2, Xtest, ytest)
-    cv_folds[fold] <- gpr_seq_out$mse
+    # browser()
+    cv_folds[fold,] <- t(gpr_seq_out$mse)
 
   }
   # take avg. mse of each kernels
