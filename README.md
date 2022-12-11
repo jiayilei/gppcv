@@ -6,6 +6,8 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/jiayilei/Project_Rpackage/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jiayilei/Project_Rpackage/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/jiayilei/Project_Rpackage/branch/main/graph/badge.svg)](https://app.codecov.io/gh/jiayilei/Project_Rpackage?branch=main)
 <!-- badges: end -->
 
 ## Description:
@@ -72,13 +74,13 @@ out
 #> function(r){
 #>     return (exp(-r/1.5))
 #> }
-#> <bytecode: 0x00000279d0801e80>
+#> <bytecode: 0x000001f843839d60>
 #> 
 #> $k[[2]]
 #> function(r){
 #>     return (exp(-0.5 * (r/1000)^2))
 #> }
-#> <bytecode: 0x00000279d0b391c8>
+#> <bytecode: 0x000001f843b67470>
 ```
 
 What is special about using `README.Rmd` instead of just `README.md`?
