@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 # standardGP
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/jiayilei/Project_Rpackage/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jiayilei/Project_Rpackage/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 ## Description:

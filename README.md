@@ -4,6 +4,8 @@
 # standardGP
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/jiayilei/Project_Rpackage/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jiayilei/Project_Rpackage/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 ## Description:
@@ -70,13 +72,13 @@ out
 #> function(r){
 #>     return (exp(-r/1.5))
 #> }
-#> <bytecode: 0x000001b3514fcd88>
+#> <bytecode: 0x00000279d0801e80>
 #> 
 #> $k[[2]]
 #> function(r){
 #>     return (exp(-0.5 * (r/1000)^2))
 #> }
-#> <bytecode: 0x000001b3517e8998>
+#> <bytecode: 0x00000279d0b391c8>
 ```
 
 What is special about using `README.Rmd` instead of just `README.md`?
