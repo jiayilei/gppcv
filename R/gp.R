@@ -16,72 +16,72 @@
 #' @export
 #'
 #' @examples
-#' n = 10
-#' p = 3
-#' nt = 4
-#' X <- matrix(rnorm(n*p, 0, 0.3), n, p)
-#' y = matrix(rnorm(n), n, 1)
-#' Xt <- matrix(rnorm(nt*p, 0, 0.3), nt, p)
-#' yt = matrix(rnorm(nt), nt, 1)
-#' num_folds=3
-#' sigma2 = 10
+#' n <- 10
+#' p <- 3
+#' nt <- 4
+#' X <- matrix(rnorm(n * p, 0, 0.3), n, p)
+#' y <- matrix(rnorm(n), n, 1)
+#' Xt <- matrix(rnorm(nt * p, 0, 0.3), nt, p)
+#' yt <- matrix(rnorm(nt), nt, 1)
+#' num_folds <- 3
+#' sigma2 <- 10
 #'
 #'
-#' k <- function(r){
-#'   return (exp(-0.5 * (r/4)^2))
+#' k <- function(r) {
+#'   return(exp(-0.5 * (r / 4)^2))
 #' }
 #'
 #' # covariance matrix: covariance evaluated at all pairs of training point
-#'  K = matrix(rep(0,n*n), n,n)
-#'  # covariance vector: covariance between test point and the n training points
-#'  ks = matrix(rep(0,nt * n), nt, n)
-
-#'  for (i in (1:n)){
-#'    for (j in (1:n)){
-#'      r = get_r(X[i,], X[j,])
-#'      K[i,j] = k(r)
-#'    }
-#'    for (m in (1: nt)){
-#'      r = get_r(X[i,], Xt[m,])
-#'      ks[m,i] = k(r)
-#'    }
-#'  }
-#'  tK = t(K)
-#'  diag(tK) <- 0
-#'  K = tK + K
+#' K <- matrix(rep(0, n * n), n, n)
+#' # covariance vector: covariance between test point and the n training points
+#' ks <- matrix(rep(0, nt * n), nt, n)
+#'
+#' for (i in (1:n)) {
+#'   for (j in (1:n)) {
+#'     r <- get_r(X[i, ], X[j, ])
+#'     K[i, j] <- k(r)
+#'   }
+#'   for (m in (1:nt)) {
+#'     r <- get_r(X[i, ], Xt[m, ])
+#'     ks[m, i] <- k(r)
+#'   }
+#' }
+#' tK <- t(K)
+#' diag(tK) <- 0
+#' K <- tK + K
 #'
 #'
 #' gpr_standardized(X, y, k, sigma2, Xt, yt, K, ks)
 #'
-gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks){
+gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks) {
   # compatibility check
-  n = dim(X)[1]
-  p = dim(X)[2]
-  nt = dim(Xt)[1]
+  n <- dim(X)[1]
+  p <- dim(X)[2]
+  nt <- dim(Xt)[1]
 
   # cholesky factorization
   # positive definit check
-  if (!(is.positive.definite(K + sigma2 * diag(n), tol=1e-10))){
+  if (!(is.positive.definite(K + sigma2 * diag(n), tol = 1e-10))) {
     stop("Can not perform cholesky decomposition. Increase sigma2.")
   }
-  L = chol(K + sigma2 * diag(n))
+  L <- chol(K + sigma2 * diag(n))
 
   # find predictive mean
-  alpha = solve(t(L)) %*% (solve(L) %*% y)
-  fs = ks %*% alpha
+  alpha <- solve(t(L)) %*% (solve(L) %*% y)
+  fs <- ks %*% alpha
 
   # find predictive variance
-  v = solve(L) %*% t(ks)
-  r = matrix(rep(0, nt), nt)
-  for (i in 1:nt){
-    r[i] = get_r(Xt[i,], Xt[i,])
+  v <- solve(L) %*% t(ks)
+  r <- matrix(rep(0, nt), nt)
+  for (i in 1:nt) {
+    r[i] <- get_r(Xt[i, ], Xt[i, ])
   }
-  Vfs = k(r) - colSums(v^2)
+  Vfs <- k(r) - colSums(v^2)
 
   # calculate log marginal likelihood
-  logp = -1/2 * crossprod(y, alpha) - sum(log(diag(L))) - n/2 * log(2*pi)
+  logp <- -1 / 2 * crossprod(y, alpha) - sum(log(diag(L))) - n / 2 * log(2 * pi)
 
-  return (list(fs = fs, Vfs = Vfs, logp = logp))
+  return(list(fs = fs, Vfs = Vfs, logp = logp))
 }
 
 
@@ -100,28 +100,27 @@ gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks){
 #' @export
 #'
 #' @examples
-#' n = 10
-#' p = 3
-#' nt = 4
-#' X <- matrix(rnorm(n*p, 0, 0.3), n, p)
-#' y = matrix(rnorm(n), n, 1)
-#' Xt <- matrix(rnorm(nt*p, 0, 0.3), nt, p)
-#' yt = matrix(rnorm(nt), nt, 1)
+#' n <- 10
+#' p <- 3
+#' nt <- 4
+#' X <- matrix(rnorm(n * p, 0, 0.3), n, p)
+#' y <- matrix(rnorm(n), n, 1)
+#' Xt <- matrix(rnorm(nt * p, 0, 0.3), nt, p)
+#' yt <- matrix(rnorm(nt), nt, 1)
 #' standardize(X, y, Xt, yt)
 #'
-#'
-standardize <- function(X, y, Xt, yt){
-  n = dim(X)[1]
-  p = dim(X)[2]
+standardize <- function(X, y, Xt, yt) {
+  n <- dim(X)[1]
+  p <- dim(X)[2]
 
   sX <- scale(X)
   sY <- scale(y)
-  X <-matrix(sX, n, p)
-  y <-matrix(sY, n, 1)
-  Xt <- (Xt - attr(sX, which ="scaled:center"))/ attr(sX, which ="scaled:scale")
-  yt <- (yt - attr(sY, which ="scaled:center"))/ attr(sY, which ="scaled:scale")
+  X <- matrix(sX, n, p)
+  y <- matrix(sY, n, 1)
+  Xt <- (Xt - attr(sX, which = "scaled:center")) / attr(sX, which = "scaled:scale")
+  yt <- (yt - attr(sY, which = "scaled:center")) / attr(sY, which = "scaled:scale")
 
-  return (list(X = X, y = y, Xt = Xt, yt = yt))
+  return(list(X = X, y = y, Xt = Xt, yt = yt))
 }
 
 
@@ -135,14 +134,14 @@ standardize <- function(X, y, Xt, yt){
 #' @export
 #'
 #' @examples
-#' x1 = matrix(rnorm(9))
-#' x2 = matrix(rnorm(9))
+#' x1 <- matrix(rnorm(9))
+#' x2 <- matrix(rnorm(9))
 #' get_r(x1, x2)
-get_r <- function(x1, x2){
-  if (length(x1) != length(x2)){
+get_r <- function(x1, x2) {
+  if (length(x1) != length(x2)) {
     stop("Dimensions of x1 and x2 do not match!")
   }
-  return (sqrt(sum((x1 - x2)^2)))
+  return(sqrt(sum((x1 - x2)^2)))
 }
 
 
@@ -156,14 +155,16 @@ get_r <- function(x1, x2){
 #' @export
 #'
 #' @examples
-#' l = 3
+#' l <- 3
 #' se_kernel(3)
-se_kernel <- function(l, r = 1){
-  if (l <=0){stop("l needs to be positive")}
-  fun <- function(r){
-    return (exp(-0.5 * (r/l)^2))
+se_kernel <- function(l, r = 1) {
+  if (l <= 0) {
+    stop("l needs to be positive")
   }
-  return (fun)
+  fun <- function(r) {
+    return(exp(-0.5 * (r / l)^2))
+  }
+  return(fun)
 }
 
 
@@ -179,17 +180,21 @@ se_kernel <- function(l, r = 1){
 #' @examples
 #' matern_kernel(3, 2.5)
 #' matern_kernel(1, 1.5)
-matern_kernel <- function(l, v, r = 1){
+matern_kernel <- function(l, v, r = 1) {
   # input check
-  if (l <=0){stop("l needs to be positive")}
-  if (v <=0){stop("v needs to be positive")}
-  fun <- function (r){
-    left <-  1 / gamma(v) / 2^(v-1)
-    mid <- (sqrt(2*v)/ l * r)^ v
-    right <- besselK(sqrt(2*v) * r / l, nu = v)
-    return (left * mid * right)
+  if (l <= 0) {
+    stop("l needs to be positive")
   }
-  return (fun)
+  if (v <= 0) {
+    stop("v needs to be positive")
+  }
+  fun <- function(r) {
+    left <- 1 / gamma(v) / 2^(v - 1)
+    mid <- (sqrt(2 * v) / l * r)^v
+    right <- besselK(sqrt(2 * v) * r / l, nu = v)
+    return(left * mid * right)
+  }
+  return(fun)
 }
 
 
@@ -204,13 +209,15 @@ matern_kernel <- function(l, v, r = 1){
 #' @examples
 #' exp_kernel(3)
 #' exp_kernel(3.5)
-exp_kernel <- function(l, r=1){
+exp_kernel <- function(l, r = 1) {
   # input check
-  if (l <=0){stop("l needs to be positive")}
-  fun <- function(r){
-    return (exp(-r/l))
+  if (l <= 0) {
+    stop("l needs to be positive")
   }
-  return (fun)
+  fun <- function(r) {
+    return(exp(-r / l))
+  }
+  return(fun)
 }
 
 
@@ -224,27 +231,26 @@ exp_kernel <- function(l, r=1){
 #' @export
 #'
 #' @examples
-#' pick_kernel(list(1,2), 'm')
-#' pick_kernel(list(3), 'se')
-pick_kernel <- function (para_list, method = c('se', 'm', 'exp')){
-  method = match.arg(method)
-  if (method == 'se'){
-    if (length(para_list) != 1){
+#' pick_kernel(list(1, 2), "m")
+#' pick_kernel(list(3), "se")
+pick_kernel <- function(para_list, method = c("se", "m", "exp")) {
+  method <- match.arg(method)
+  if (method == "se") {
+    if (length(para_list) != 1) {
       stop("squared exponential kernel needs 1 parameter")
     }
-    return (do.call(se_kernel, para_list))
-  } else if (method == 'm'){
-    if (length(para_list) != 2){
+    return(do.call(se_kernel, para_list))
+  } else if (method == "m") {
+    if (length(para_list) != 2) {
       stop("matern kernel needs 2 parameters")
-      }
-    return (do.call(matern_kernel, para_list))
-  } else if (method == 'exp'){
-    if (length(para_list) != 1){
+    }
+    return(do.call(matern_kernel, para_list))
+  } else if (method == "exp") {
+    if (length(para_list) != 1) {
       stop("exponential kernel needs 1 parameter")
     }
-    return (do.call(exp_kernel, para_list))
+    return(do.call(exp_kernel, para_list))
   }
-
 }
 
 #
@@ -261,48 +267,47 @@ pick_kernel <- function (para_list, method = c('se', 'm', 'exp')){
 #' @export
 #'
 #' @examples
-#' k <- function(r){
-#'   return (exp(-0.5 * (r/4)^2))
+#' k <- function(r) {
+#'   return(exp(-0.5 * (r / 4)^2))
 #' }
-#' n = 10
-#' p = 3
-#' nt = 4
-#' X <- matrix(rnorm(n*p, 0, 0.3), n, p)
-#' Xt <- matrix(rnorm(nt*p, 0, 0.3), nt, p)
+#' n <- 10
+#' p <- 3
+#' nt <- 4
+#' X <- matrix(rnorm(n * p, 0, 0.3), n, p)
+#' Xt <- matrix(rnorm(nt * p, 0, 0.3), nt, p)
 #'
-covariance_mats <- function(X, Xt, k){
+covariance_mats <- function(X, Xt, k) {
+  n <- dim(X)[1]
+  p <- dim(X)[2]
+  nt <- dim(Xt)[1]
 
-  n = dim(X)[1]
-  p = dim(X)[2]
-  nt = dim(Xt)[1]
-
-  if (p != dim(Xt)[2]){
+  if (p != dim(Xt)[2]) {
     stop("Dimensions of X and Xt do not match!")
   }
 
   # covariance matrix: covariance evaluated at all pairs of training point
-  K = matrix(rep(0,n*n), n,n)
+  K <- matrix(rep(0, n * n), n, n)
   # covariance vector: covariance between test point and the n training points and variance of test data points
-  ks = matrix(rep(0, nt * n), nt, n)
+  ks <- matrix(rep(0, nt * n), nt, n)
 
-  for (i in (1:n)){
+  for (i in (1:n)) {
     # covariance between training data
-    for (j in (i:n)){
-      r = get_r(X[i,], X[j,])
-      K[i,j] = k(r)
+    for (j in (i:n)) {
+      r <- get_r(X[i, ], X[j, ])
+      K[i, j] <- k(r)
     }
     # covariance between test data and training data
-    for (m in (1: nt)){
-      r = get_r(X[i,], Xt[m,])
-      ks[m,i] = k(r)
+    for (m in (1:nt)) {
+      r <- get_r(X[i, ], Xt[m, ])
+      ks[m, i] <- k(r)
     }
   }
 
-  tK = t(K)
+  tK <- t(K)
   diag(tK) <- 0
-  K = tK + K
+  K <- tK + K
 
-  return (list(K = K, ks = ks))
+  return(list(K = K, ks = ks))
 }
 
 
@@ -323,69 +328,72 @@ covariance_mats <- function(X, Xt, k){
 #' @export
 #'
 #' @examples
-#' n = 10
-#' p = 3
-#' nt = 4
-#' X <- matrix(rnorm(n*p, 0, 0.3), n, p)
-#' y = matrix(rnorm(n), n, 1)
-#' Xt <- matrix(rnorm(nt*p, 0, 0.3), nt, p)
-#' yt = matrix(rnorm(nt), nt, 1)
-#' num_folds=3
-#' sigma2 = 10
+#' n <- 10
+#' p <- 3
+#' nt <- 4
+#' X <- matrix(rnorm(n * p, 0, 0.3), n, p)
+#' y <- matrix(rnorm(n), n, 1)
+#' Xt <- matrix(rnorm(nt * p, 0, 0.3), nt, p)
+#' yt <- matrix(rnorm(nt), nt, 1)
+#' num_folds <- 3
+#' sigma2 <- 10
 #'
 #'
-#' k1 <- function(r){
-#'   return (exp(-0.5 * (r/4)^2))
+#' k1 <- function(r) {
+#'   return(exp(-0.5 * (r / 4)^2))
 #' }
 #'
-#' k2 <- function(r){
-#'   return (exp(-r/3.5))
+#' k2 <- function(r) {
+#'   return(exp(-r / 3.5))
 #' }
-#' k = c(k1, k2)
+#' k <- c(k1, k2)
 #' gpr_seq_kernels(X, y, k, sigma2, Xt, yt)
 #'
-gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
+gpr_seq_kernels <- function(X, y, k, sigma2, Xt, yt) {
   # compatibility check
-  n = dim(X)[1]
-  p = dim(X)[2]
-  nt = dim(Xt)[1]
+  n <- dim(X)[1]
+  p <- dim(X)[2]
+  nt <- dim(Xt)[1]
 
-  if (length(y) != n){
+  if (length(y) != n) {
     stop("Dimensions of X and y do not match!")
   }
-  if (dim(Xt)[2] != p){
+  if (dim(Xt)[2] != p) {
     stop("Dimensions of X and Xt do not match!")
   }
-  if (length(yt) != nt){
+  if (length(yt) != nt) {
     stop("Dimensions of yt and Xt do not match!")
   }
-  if (sigma2 < 0){
+  if (sigma2 < 0) {
     stop("Sigma2 needs to be positive!")
   }
 
   # standardize inputs
   standardized_out <- standardize(X, y, Xt, yt)
-  X = standardized_out$X
-  y = standardized_out$y
-  Xt = standardized_out$Xt
-  yt = standardized_out$yt
+  X <- standardized_out$X
+  y <- standardized_out$y
+  Xt <- standardized_out$Xt
+  yt <- standardized_out$yt
 
   # standardized gaussian process regression for each k
   mse <- matrix(rep(0, length(k)))
-  predictions <- matrix(rep(0, nt*length(k)), nt, length(k))
+  predictions <- matrix(rep(0, nt * length(k)), nt, length(k))
 
-  for (i in 1 : length(k)){
-    if (length(k) == 1) {k_single = k} else {k_single = k[[i]]}
+  for (i in 1:length(k)) {
+    if (length(k) == 1) {
+      k_single <- k
+    } else {
+      k_single <- k[[i]]
+    }
     cov_out <- covariance_mats(X, Xt, k_single)
-    K = cov_out$K
-    ks = cov_out$ks
+    K <- cov_out$K
+    ks <- cov_out$ks
     gpr_out <- gpr_standardized(X, y, k_single, sigma2, Xt, yt, K, ks)
     # evaluate mse for each kernels
-    mse[i] = sum((gpr_out$fs - yt)^2)/nt
-    predictions[,i] = gpr_out$fs
+    mse[i] <- sum((gpr_out$fs - yt)^2) / nt
+    predictions[, i] <- gpr_out$fs
   }
-  return (list(k=k, mse = mse, predictions = predictions))
-
+  return(list(k = k, mse = mse, predictions = predictions, yt = yt))
 }
 
 #
@@ -404,32 +412,32 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
 #' @export
 #'
 #' @examples
-#' n = 100
-#' p = 3
-#' nt = 4
-#' X <- matrix(rnorm(n*p, 0, 0.3), n, p)
-#' y = matrix(rnorm(n), n, 1)
-#' sigma2 = 10
-#' k1 <- function(r){
-#'   return (exp(-0.5 * (r/4)^2))
+#' n <- 100
+#' p <- 3
+#' nt <- 4
+#' X <- matrix(rnorm(n * p, 0, 0.3), n, p)
+#' y <- matrix(rnorm(n), n, 1)
+#' sigma2 <- 10
+#' k1 <- function(r) {
+#'   return(exp(-0.5 * (r / 4)^2))
 #' }
 #'
-#' k2 <- function(r){
-#'   return (exp(-r/3.5))
+#' k2 <- function(r) {
+#'   return(exp(-r / 3.5))
 #' }
-#' k = c(k1, k2)
-#' num_folds = 5
+#' k <- c(k1, k2)
+#' num_folds <- 5
 #' gpr_cv(X, y, k, sigma2, num_folds)
-gpr_cv <- function(X, y, k, sigma2, num_folds, fold_ids = NULL){
-  n = dim(X)[1]
-  if (n != dim(matrix(y))[1]){
+gpr_cv <- function(X, y, k, sigma2, num_folds, fold_ids = NULL) {
+  n <- dim(X)[1]
+  if (n != dim(matrix(y))[1]) {
     stop("Dimension of X and y does not match!")
   }
   # get a list of fold_ids if it is not given
   if (is.null(fold_ids) && !(is.null(num_folds))) {
     fold_ids <- sample((1:n) %% num_folds + 1, n)
-  }else {
-    num_folds = max(fold_ids)
+  } else {
+    num_folds <- max(fold_ids)
   }
 
   nkernels <- length(k)
@@ -445,10 +453,9 @@ gpr_cv <- function(X, y, k, sigma2, num_folds, fold_ids = NULL){
     # train models with sequence of kernels
     gpr_seq_out <- gpr_seq_kernels(Xtrain, ytrain, k, sigma2, Xtest, ytest)
     # browser()
-    cv_folds[fold,] <- t(gpr_seq_out$mse)
-
+    cv_folds[fold, ] <- t(gpr_seq_out$mse)
   }
   # take avg. mse of each kernels
   cvm <- colMeans(cv_folds)
-  return (list(cvm = cvm, k=k))
+  return(list(cvm = cvm, k = k))
 }
