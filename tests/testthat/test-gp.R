@@ -252,3 +252,26 @@ test_that("test matern_kernel", {
   expect_error(matern_kernel(-2,3)(4), "l needs to be positive")
   expect_error(matern_kernel(2,-3)(4), "v needs to be positive")
 })
+
+
+
+test_that("test pick_kernel", {
+
+  expect_error(pick_kernel(list(2,3), 'se'), "squared exponential kernel needs 1 parameter")
+  expect_error(pick_kernel(list(2,3,4), 'm'), "matern kernel needs 2 parameter")
+  expect_error(pick_kernel(list(2,3), 'exp'), "exponential kernel needs 1 parameter")
+
+  expect_equal(pick_kernel(list(2), 'se')(3), exp(-0.5 * (3/2)^2))
+  expect_equal(pick_kernel(list(2), 'exp')(3), exp(-3/2))
+  expect_equal(pick_kernel(list(2,3), 'm')(4), 1 / gamma(3) / 2^(3-1) * (sqrt(2*3)/ 2 * 4)^ 3 * besselK(sqrt(2*3) * 4 / 2, nu = 3))
+  # when no method was chosen
+  expect_equal(pick_kernel(list(2))(3), exp(-0.5 * (3/2)^2))
+
+})
+
+
+test_that("test se_kernel", {
+  expect_equal(se_kernel(2)(4), exp(-0.5 * (4/2)^2))
+  expect_error(se_kernel(-2)(4), "l needs to be positive")
+
+})
