@@ -244,3 +244,11 @@ test_that("test gpr_standardized", {
   expect_equal(out$logp, logp)
 
 })
+
+
+
+test_that("test matern_kernel", {
+  expect_equal(matern_kernel(2,3)(4), 1 / gamma(3) / 2^(3-1) * (sqrt(2*3)/ 2 * 4)^ 3 * besselK(sqrt(2*3) * 4 / 2, nu = 3))
+  expect_error(matern_kernel(-2,3)(4), "l needs to be positive")
+  expect_error(matern_kernel(2,-3)(4), "v needs to be positive")
+})
