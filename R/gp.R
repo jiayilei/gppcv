@@ -61,8 +61,8 @@ gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks){
 
   # cholesky factorization
   # positive definit check
-  if (!is.positive.definite(K + sigma2 * diag(n))){
-    stop("K + sigma2*I is not positive definite. Can not perform cholesky decomposition. Consider increasing sigma2.")
+  if (!(is.positive.definite(K + sigma2 * diag(n), tol=1e-10))){
+    stop("Can not perform cholesky decomposition. Increase sigma2.")
   }
   L = chol(K + sigma2 * diag(n))
 
@@ -368,8 +368,6 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
   y = standardized_out$y
   Xt = standardized_out$Xt
   yt = standardized_out$yt
-
-  # get K and Ks, covariance matrix
 
   # standardized gaussian process regression for each k
   mse <- matrix(rep(0, length(k)))
