@@ -1,4 +1,5 @@
 library('tinytest')
+library('matrixcalc')
 # pre processing
 
 # intent inputs
