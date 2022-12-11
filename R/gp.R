@@ -317,8 +317,9 @@ covariance_mats <- function(X, Xt, k){
 #' @param yt testing targets
 #'
 #' @return
-#'        k list of covariance functions, same as input
-#'        mse mean square errors for each covariance function
+#'        k: list of covariance functions, same as input
+#'        mse: mean square errors for each covariance function
+#'        predictions: [nt x num_kernels] matrix containing predictions of each test inputs under each kernels
 #' @export
 #'
 #' @examples
@@ -371,6 +372,8 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
 
   # standardized gaussian process regression for each k
   mse <- matrix(rep(0, length(k)))
+  predictions <- matrix(rep(0, nt*length(k)), nt, length(k))
+
   for (i in 1 : length(k)){
     if (length(k) == 1) {k_single = k} else {k_single = k[[i]]}
     cov_out <- covariance_mats(X, Xt, k_single)
@@ -379,8 +382,9 @@ gpr_seq_kernels <-function(X, y, k, sigma2, Xt, yt){
     gpr_out <- gpr_standardized(X, y, k_single, sigma2, Xt, yt, K, ks)
     # evaluate mse for each kernels
     mse[i] = sum((gpr_out$fs - yt)^2)/nt
+    predictions[,i] = gpr_out$fs
   }
-  return (list(k=k, mse = mse))
+  return (list(k=k, mse = mse, predictions = predictions))
 
 }
 
