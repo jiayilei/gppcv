@@ -1,3 +1,8 @@
 ^standardGP\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^test\.R$
+^draft\.R$
+^README\.Rmd$
+^\.github$
+^codecov\.yml$
