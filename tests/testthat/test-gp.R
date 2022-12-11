@@ -1,12 +1,42 @@
 library('tinytest')
+# pre processing
+
+# intent inputs
+n = 100 # number of inputs
+p = 10 # number of features
+nt = 50 # number of test inputs
+n_kernels = 3 # number of kernels
+
+X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+Xt <- matrix(rnorm(nt*p, 0), nt, p)
+y <- matrix(rnorm(n), n, 1)
+yt <- matrix(rnorm(nt), nt, 1)
+
+num_folds=3
+fold_ids <- sample((1:n) %% num_folds + 1, n)
+sigma2 = 10
+k = c(se_kernel(3), se_kernel(3))
+
+
 test_that("test covariance_mats", {
-  n = 300
-  p = 10
-  nt = 100
+  # intent inputs
+  n = 100 # number of inputs
+  p = 10 # number of features
+  nt = 50 # number of test inputs
+  n_kernels = 3 # number of kernels
+
   X <- matrix(rnorm(n*p, 0, 0.3), n, p)
   Xt <- matrix(rnorm(nt*p, 0), nt, p)
-  k = se_kernel(2)
-  co_out <- covariance_mats(X, Xt, k)
+  y <- matrix(rnorm(n), n, 1)
+  yt <- matrix(rnorm(nt), nt, 1)
+
+  num_folds=3
+  fold_ids <- sample((1:n) %% num_folds + 1, n)
+  sigma2 = 10
+  k = c(se_kernel(3), se_kernel(3))
+
+  kt <- k[[1]]
+  co_out <- covariance_mats(X, Xt, kt)
   expect_equal(dim(co_out$K)[1], n)
   expect_equal(dim(co_out$K)[2], n)
   expect_equal(dim(co_out$Ks)[1], nt)
@@ -26,9 +56,22 @@ test_that("test exp_kernel", {
 })
 
 test_that("test get_r", {
-  n = 300
-  p = 10
+  # intent inputs
+  n = 100 # number of inputs
+  p = 10 # number of features
+  nt = 50 # number of test inputs
+  n_kernels = 3 # number of kernels
+
   X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+  Xt <- matrix(rnorm(nt*p, 0), nt, p)
+  y <- matrix(rnorm(n), n, 1)
+  yt <- matrix(rnorm(nt), nt, 1)
+
+  num_folds=3
+  fold_ids <- sample((1:n) %% num_folds + 1, n)
+  sigma2 = 10
+  k = c(se_kernel(3), se_kernel(3))
+
   x1 = X[1,]
   x2 = X[2,]
   expect_equal(get_r(x1, x2), sqrt(sum((x1 - x2)^2)))
@@ -38,15 +81,22 @@ test_that("test get_r", {
 
 
 test_that("test gpr_cv", {
-  n = 50 # number of inputs
+  # intent inputs
+  n = 100 # number of inputs
   p = 10 # number of features
+  nt = 50 # number of test inputs
   n_kernels = 3 # number of kernels
+
   X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+  Xt <- matrix(rnorm(nt*p, 0), nt, p)
   y <- matrix(rnorm(n), n, 1)
+  yt <- matrix(rnorm(nt), nt, 1)
+
   num_folds=3
   fold_ids <- sample((1:n) %% num_folds + 1, n)
   sigma2 = 10
   k = c(se_kernel(3), se_kernel(3))
+
   # function output
   out <- gpr_cv(X, y, k, sigma2, num_folds, fold_ids)
 
@@ -80,16 +130,22 @@ test_that("test gpr_cv", {
 })
 
 test_that("test gpr_seq_kernels", {
-  # intended inputs
-  n = 100
-  p = 10
-  nt = 50
+  # intent inputs
+  n = 100 # number of inputs
+  p = 10 # number of features
+  nt = 50 # number of test inputs
+  n_kernels = 3 # number of kernels
+
   X <- matrix(rnorm(n*p, 0, 0.3), n, p)
   Xt <- matrix(rnorm(nt*p, 0), nt, p)
   y <- matrix(rnorm(n), n, 1)
   yt <- matrix(rnorm(nt), nt, 1)
+
+  num_folds=3
+  fold_ids <- sample((1:n) %% num_folds + 1, n)
+  sigma2 = 10
   k = c(se_kernel(3), se_kernel(3))
-  sigma2 <- 5
+
 
   # inputs used to test dimension checks
   Xte <- matrix(rnorm( nt *5, 0, 0.3), nt, 5)
@@ -114,8 +170,6 @@ test_that("test gpr_seq_kernels", {
   Xt = standardized_out$Xt
   yt = standardized_out$yt
 
-  # get K and Ks, covariance matrix
-
   # standardized gaussian process regression for each k
   mse <- matrix(rep(0, length(k)))
   for (i in 1 : length(k)){
@@ -132,3 +186,61 @@ test_that("test gpr_seq_kernels", {
 
 })
 
+
+
+test_that("test gpr_standardized", {
+  # intent inputs
+  n = 100 # number of inputs
+  p = 10 # number of features
+  nt = 50 # number of test inputs
+  n_kernels = 3 # number of kernels
+
+  X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+  Xt <- matrix(rnorm(nt*p, 0), nt, p)
+  y <- matrix(rnorm(n), n, 1)
+  yt <- matrix(rnorm(nt), nt, 1)
+
+  num_folds=3
+  fold_ids <- sample((1:n) %% num_folds + 1, n)
+  sigma2 = 10
+  k = se_kernel(3)
+
+  cov_out <- covariance_mats(X, Xt, k)
+  K = cov_out$K
+  ks = cov_out$ks
+
+  # inputs used to test dimension checks
+  Ke <- matrix(rep(1, n*n),n, n)
+  sigma2e <- 1e-10
+
+  # test dimension checks
+  ks = matrix(rep(1, nt*n),nt,n)
+  expect_error(gpr_standardized(X, y, k, sigma2e, Xt, yt, Ke, ks), "Can not perform cholesky decomposition. Increase sigma2.")
+
+  # output from the function
+  out <- gpr_standardized(X, y, k, sigma2, Xt, yt, K, ks)
+
+  ##  manual calcuations
+  L = chol(K + sigma2 * diag(n))
+
+  # find predictive mean
+  alpha = solve(t(L)) %*% (solve(L) %*% y)
+  fs = ks %*% alpha
+
+  # find predictive variance
+  v = solve(L) %*% t(ks)
+  r = matrix(rep(0, nt), nt)
+  for (i in 1:nt){
+    r[i] = get_r(Xt[i,], Xt[i,])
+  }
+  Vfs = k(r) - colSums(v^2)
+
+  # calculate log marginal likelihood
+  logp = -1/2 * crossprod(y, alpha) - sum(log(diag(L))) - n/2 * log(2*pi)
+
+  ## check
+  expect_equal(out$fs, fs)
+  expect_equal(out$fs, fs)
+  expect_equal(out$fs, fs)
+
+})
