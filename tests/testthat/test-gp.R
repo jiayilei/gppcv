@@ -275,3 +275,23 @@ test_that("test se_kernel", {
   expect_error(se_kernel(-2)(4), "l needs to be positive")
 
 })
+
+
+test_that("test standardize", {
+  n = 100 # number of inputs
+  p = 10 # number of features
+  nt = 50 # number of test inputs
+
+  X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+  Xt <- matrix(rnorm(nt*p, 0), nt, p)
+  y <- matrix(rnorm(n), n, 1)
+  yt <- matrix(rnorm(nt), nt, 1)
+
+  out <- standardize(X,y,Xt,yt)
+
+  expect_equal(colMeans(out$X),rep(0,p))
+  expect_equal(var(out$X[,1]),1)
+  expect_equal(mean(out$y[,1]),0)
+  expect_equal(var(out$y[1]),1)
+
+})
