@@ -86,7 +86,7 @@ gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks){
 
 
 #' Standardize Input
-#'
+#' Standardize X, y, Xt, and yt based on mean and variance of X and y
 #' @param X original training inputs
 #' @param y original training targets
 #' @param Xt original testing inputs
@@ -180,6 +180,7 @@ se_kernel <- function(l, r = 1){
 #' matern_kernel(3, 2.5)
 #' matern_kernel(1, 1.5)
 matern_kernel <- function(l, v, r = 1){
+  # input check
   if (l <=0){stop("l needs to be positive")}
   if (v <=0){stop("v needs to be positive")}
   fun <- function (r){
@@ -204,6 +205,7 @@ matern_kernel <- function(l, v, r = 1){
 #' exp_kernel(3)
 #' exp_kernel(3.5)
 exp_kernel <- function(l, r=1){
+  # input check
   if (l <=0){stop("l needs to be positive")}
   fun <- function(r){
     return (exp(-r/l))
@@ -241,9 +243,7 @@ pick_kernel <- function (para_list, method = c('se', 'm', 'exp')){
       stop("exponential kernel needs 1 parameter")
     }
     return (do.call(exp_kernel, para_list))
-  }else {
-    return (se_kernel(1))
-    }
+  }
 
 }
 
