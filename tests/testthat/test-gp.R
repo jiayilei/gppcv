@@ -240,7 +240,7 @@ test_that("test gpr_standardized", {
 
   ## check
   expect_equal(out$fs, fs)
-  expect_equal(out$fs, fs)
-  expect_equal(out$fs, fs)
+  expect_equal(out$Vfs, Vfs)
+  expect_equal(out$logp, logp)
 
 })
