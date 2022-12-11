@@ -60,7 +60,10 @@ gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks){
   nt = dim(Xt)[1]
 
   # cholesky factorization
-  # browser()
+  # positive definit check
+  if (!is.positive.definite(K + sigma2 * diag(n))){
+    stop("K + sigma2*I is not positive definite. Can not perform cholesky decomposition. Consider increasing sigma2.")
+  }
   L = chol(K + sigma2 * diag(n))
 
   # find predictive mean
