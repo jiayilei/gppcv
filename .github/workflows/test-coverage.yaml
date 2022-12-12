@@ -37,7 +37,8 @@ jobs:
           # Options are `alpine`, `linux`, `macos`, `windows`
           curl -Os https://uploader.codecov.io/latest/windows/codecov
           chmod +x codecov
-          ./codecov -t ${CODECOV_TOKEN}
+          ./codecov -t ${CODECOV_TOKEN=850544e1-563e-402d-b10e-429ca1903f81
+}
         shell: Rscript {0}
 
       - name: Show testthat output
