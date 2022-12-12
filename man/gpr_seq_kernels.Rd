@@ -29,25 +29,25 @@ gpr_seq_kernels(X, y, k, sigma2, Xt, yt)
 Gaussian Process Regression for a sequence of kernels
 }
 \examples{
-n = 10
-p = 3
-nt = 4
-X <- matrix(rnorm(n*p, 0, 0.3), n, p)
-y = matrix(rnorm(n), n, 1)
-Xt <- matrix(rnorm(nt*p, 0, 0.3), nt, p)
-yt = matrix(rnorm(nt), nt, 1)
-num_folds=3
-sigma2 = 10
+n <- 10
+p <- 3
+nt <- 4
+X <- matrix(rnorm(n * p, 0, 0.3), n, p)
+y <- matrix(rnorm(n), n, 1)
+Xt <- matrix(rnorm(nt * p, 0, 0.3), nt, p)
+yt <- matrix(rnorm(nt), nt, 1)
+num_folds <- 3
+sigma2 <- 10
 
 
-k1 <- function(r){
-  return (exp(-0.5 * (r/4)^2))
+k1 <- function(r) {
+  return(exp(-0.5 * (r / 4)^2))
 }
 
-k2 <- function(r){
-  return (exp(-r/3.5))
+k2 <- function(r) {
+  return(exp(-r / 3.5))
 }
-k = c(k1, k2)
+k <- c(k1, k2)
 gpr_seq_kernels(X, y, k, sigma2, Xt, yt)
 
 }

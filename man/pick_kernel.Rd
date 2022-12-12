@@ -20,6 +20,6 @@ pick the kernel
 return kernel functions with hyperparemeters
 }
 \examples{
-pick_kernel(list(1,2), 'm')
-pick_kernel(list(3), 'se')
+pick_kernel(list(1, 2), "m")
+pick_kernel(list(3), "se")
 }

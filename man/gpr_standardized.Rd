@@ -30,41 +30,44 @@ gpr_standardized(X, y, k, sigma2, Xt, yt, K, ks)
 }\if{html}{\out{</div>}}
 }
 \description{
-Gaussian Process Regression with Standardized Inputs
+Given standardized training data X, y, scaled data Xt, yt, noise level sigma2,
+covariance function k, covariance matrixes K, ks and returns mean functions fs, variance Vfs and log marginal likelihood logp.
+This function is based on Gaussian process regression algorithm from Rasmussen and Williams
 }
 \examples{
-n = 10
-p = 3
-nt = 4
-X <- matrix(rnorm(n*p, 0, 0.3), n, p)
-y = matrix(rnorm(n), n, 1)
-Xt <- matrix(rnorm(nt*p, 0, 0.3), nt, p)
-yt = matrix(rnorm(nt), nt, 1)
-num_folds=3
-sigma2 = 10
+n <- 10
+p <- 3
+nt <- 4
+X <- matrix(rnorm(n * p, 0, 0.3), n, p)
+y <- matrix(rnorm(n), n, 1)
+Xt <- matrix(rnorm(nt * p, 0, 0.3), nt, p)
+yt <- matrix(rnorm(nt), nt, 1)
+num_folds <- 3
+sigma2 <- 10
 
 
-k <- function(r){
-  return (exp(-0.5 * (r/4)^2))
+k <- function(r) {
+  return(exp(-0.5 * (r / 4)^2))
 }
 
 # covariance matrix: covariance evaluated at all pairs of training point
- K = matrix(rep(0,n*n), n,n)
- # covariance vector: covariance between test point and the n training points
- ks = matrix(rep(0,nt * n), nt, n)
- for (i in (1:n)){
-   for (j in (1:n)){
-     r = get_r(X[i,], X[j,])
-     K[i,j] = k(r)
-   }
-   for (m in (1: nt)){
-     r = get_r(X[i,], Xt[m,])
-     ks[m,i] = k(r)
-   }
- }
- tK = t(K)
- diag(tK) <- 0
- K = tK + K
+K <- matrix(rep(0, n * n), n, n)
+# covariance vector: covariance between test point and the n training points
+ks <- matrix(rep(0, nt * n), nt, n)
+
+for (i in (1:n)) {
+  for (j in (1:n)) {
+    r <- get_r(X[i, ], X[j, ])
+    K[i, j] <- k(r)
+  }
+  for (m in (1:nt)) {
+    r <- get_r(X[i, ], Xt[m, ])
+    ks[m, i] <- k(r)
+  }
+}
+tK <- t(K)
+diag(tK) <- 0
+K <- tK + K
 
 
 gpr_standardized(X, y, k, sigma2, Xt, yt, K, ks)

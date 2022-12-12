@@ -24,13 +24,13 @@ Covariance Matrix
 gets covariance_matrix of K and Ks
 }
 \examples{
-k <- function(r){
-  return (exp(-0.5 * (r/4)^2))
+k <- function(r) {
+  return(exp(-0.5 * (r / 4)^2))
 }
-n = 10
-p = 3
-nt = 4
-X <- matrix(rnorm(n*p, 0, 0.3), n, p)
-Xt <- matrix(rnorm(nt*p, 0, 0.3), nt, p)
+n <- 10
+p <- 3
+nt <- 4
+X <- matrix(rnorm(n * p, 0, 0.3), n, p)
+Xt <- matrix(rnorm(nt * p, 0, 0.3), nt, p)
 
 }

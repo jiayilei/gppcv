@@ -18,6 +18,6 @@ covariance function with fixed hyperperameter l
 Square Exponential Kernel
 }
 \examples{
-l = 3
+l <- 3
 se_kernel(3)
 }

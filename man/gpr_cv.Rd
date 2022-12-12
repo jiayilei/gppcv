@@ -28,20 +28,20 @@ gpr_cv(X, y, k, sigma2, num_folds, fold_ids = NULL)
 Gaussian Process Regression Cross Validation
 }
 \examples{
-n = 100
-p = 3
-nt = 4
-X <- matrix(rnorm(n*p, 0, 0.3), n, p)
-y = matrix(rnorm(n), n, 1)
-sigma2 = 10
-k1 <- function(r){
-  return (exp(-0.5 * (r/4)^2))
+n <- 100
+p <- 3
+nt <- 4
+X <- matrix(rnorm(n * p, 0, 0.3), n, p)
+y <- matrix(rnorm(n), n, 1)
+sigma2 <- 10
+k1 <- function(r) {
+  return(exp(-0.5 * (r / 4)^2))
 }
 
-k2 <- function(r){
-  return (exp(-r/3.5))
+k2 <- function(r) {
+  return(exp(-r / 3.5))
 }
-k = c(k1, k2)
-num_folds = 5
+k <- c(k1, k2)
+num_folds <- 5
 gpr_cv(X, y, k, sigma2, num_folds)
 }

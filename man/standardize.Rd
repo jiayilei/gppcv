@@ -2,8 +2,7 @@
 % Please edit documentation in R/gp.R
 \name{standardize}
 \alias{standardize}
-\title{Standardize Input
-Standardize X, y, Xt, and yt based on mean and variance of X and y}
+\title{Standardize Input}
 \usage{
 standardize(X, y, Xt, yt)
 }
@@ -24,18 +23,16 @@ standardize(X, y, Xt, yt)
 }\if{html}{\out{</div>}}
 }
 \description{
-Standardize Input
 Standardize X, y, Xt, and yt based on mean and variance of X and y
 }
 \examples{
-n = 10
-p = 3
-nt = 4
-X <- matrix(rnorm(n*p, 0, 0.3), n, p)
-y = matrix(rnorm(n), n, 1)
-Xt <- matrix(rnorm(nt*p, 0, 0.3), nt, p)
-yt = matrix(rnorm(nt), nt, 1)
+n <- 10
+p <- 3
+nt <- 4
+X <- matrix(rnorm(n * p, 0, 0.3), n, p)
+y <- matrix(rnorm(n), n, 1)
+Xt <- matrix(rnorm(nt * p, 0, 0.3), nt, p)
+yt <- matrix(rnorm(nt), nt, 1)
 standardize(X, y, Xt, yt)
-
 
 }

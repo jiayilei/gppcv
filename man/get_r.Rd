@@ -18,7 +18,7 @@ r euclidean distance between first data and the second data
 Returns Euclidean distance between two input data
 }
 \examples{
-x1 = matrix(rnorm(9))
-x2 = matrix(rnorm(9))
+x1 <- matrix(rnorm(9))
+x2 <- matrix(rnorm(9))
 get_r(x1, x2)
 }
