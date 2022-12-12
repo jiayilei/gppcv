@@ -35,33 +35,34 @@ Then, use
 
 ## Examples
 
-This is a basic example which shows you how to perform cross valdiation
+Below is a basic example which shows you how to perform cross validation
 with a sequence of kernels by using `gpr_cv`:
 
 ``` r
 library(standardGP)
 library(matrixcalc)
 # intent inputs
-n = 100 # number of inputs
-p = 10 # number of features
-n_kernels = 3 # number of kernels
+n <- 100 # number of inputs
+p <- 10 # number of features
+n_kernels <- 3 # number of kernels
+
 
 set.seed(123)
-X <- matrix(rnorm(n*p, 0, 0.3), n, p)
+X <- matrix(rnorm(n * p, 0, 0.3), n, p)
 y <- matrix(rnorm(n), n, 1)
 
-num_folds=3
+num_folds <- 3
 fold_ids <- sample((1:n) %% num_folds + 1, n)
-sigma2 = 10
-# first kernel
-k1  <- function(r){
-    return (exp(-r/1.5))
+sigma2 <- 10
+# first kernel, r is the Euclidena distance between two data points
+k1 <- function(r) {
+  return(exp(-r / 1.5))
 }
-# second kernel
-k2 <- function(r){
-    return (exp(-0.5 * (r/1000)^2))
+# second kernel, r is the Euclidena distance between two data points
+k2 <- function(r) {
+  return(exp(-0.5 * (r / 1000)^2))
 }
-k = c(k1, k2) # list of kernels
+k <- c(k1, k2) # list of kernels
 
 # function output
 out <- gpr_cv(X, y, k, sigma2, num_folds, fold_ids)
@@ -71,41 +72,74 @@ out
 #> 
 #> $k
 #> $k[[1]]
-#> function(r){
-#>     return (exp(-r/1.5))
+#> function(r) {
+#>   return(exp(-r / 1.5))
 #> }
-#> <bytecode: 0x000001f843839d60>
+#> <bytecode: 0x0000029dbb7ecc78>
 #> 
 #> $k[[2]]
-#> function(r){
-#>     return (exp(-0.5 * (r/1000)^2))
+#> function(r) {
+#>   return(exp(-0.5 * (r / 1000)^2))
 #> }
-#> <bytecode: 0x000001f843b67470>
+#> <bytecode: 0x0000029dbbb10e98>
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+If you are interested in performing Gaussian process regression by using
+multiple kernels, below is an example of how to use `gpr_seq_kernels` to
+do the prediction. Note that kernels passed into this function need to
+be using the Euclidean distance between two data points as parameters.
 
 ``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
+library(standardGP)
+library(matrixcalc)
+# intent inputs
+n <- 100 # number of inputs
+p <- 10 # number of features
+nt <- 50
+
+set.seed(123)
+X <- matrix(rnorm(n * p, 0, 0.3), n, p)
+y <- matrix(rnorm(n), n, 1)
+Xt <- matrix(rnorm(nt * p, 0, 0.3), nt, p)
+yt <- matrix(rnorm(nt), nt, 1)
+
+sigma2 <- 10
+# first kernel, r is the Euclidean distance between two data points
+k1 <- function(r) {
+  return(exp(-r / 1.5))
+}
+# second kernel, r is the Euclidean distance between two data points
+k2 <- function(r) {
+  return(exp(-0.5 * (r / 1000)^2))
+}
+k <- c(k1, k2) # list of kernels
+
+# function output
+out <- gpr_seq_kernels(X, y, k, sigma2, Xt, yt)
 ```
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this. You could also
-use GitHub Actions to re-render `README.Rmd` every time you push. An
-example workflow can be found here:
-<https://github.com/r-lib/actions/tree/v1/examples>.
+There are some predefined functions in the package that you can choose
+from by using `pick_kernel`:
 
-You can also embed plots, for example:
+``` r
+pick_kernel(list(1), "se")
+#> function(r){
+#>     return (exp(-0.5 * (r/l)^2))
+#>   }
+#> <bytecode: 0x0000029dbefcf788>
+#> <environment: 0x0000029dbefda6b8>
+pick_kernel(list(2, 3), "m")
+#> function (r){
+#>     left <-  1 / gamma(v) / 2^(v-1)
+#>     mid <- (sqrt(2*v)/ l * r)^ v
+#>     right <- besselK(sqrt(2*v) * r / l, nu = v)
+#>     return (left * mid * right)
+#>   }
+#> <bytecode: 0x0000029dbf08a438>
+#> <environment: 0x0000029dbf097f30>
+```
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
+## References
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+\[1\] Rasmussen, Carl Edward, and Christopher K. I. Williams. Gaussian
+Processes for Machine Learning. MIT Press, 2005.
