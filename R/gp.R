@@ -1,5 +1,8 @@
 #
 #' Gaussian Process Regression with Standardized Inputs
+#' @description  Given standardized training data X, y, scaled data Xt, yt, noise level sigma2,
+#' covariance function k, covariance matrixes K, ks and returns mean functions fs, variance Vfs and log marginal likelihood logp.
+#' This function is based on Gaussian process regression algorithm from Rasmussen and Williams
 #' @param X inputs
 #' @param y targets
 #' @param k covariance function
@@ -86,7 +89,8 @@ gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks) {
 
 
 #' Standardize Input
-#' Standardize X, y, Xt, and yt based on mean and variance of X and y
+#'
+#' @description Standardize X, y, Xt, and yt based on mean and variance of X and y
 #' @param X original training inputs
 #' @param y original training targets
 #' @param Xt original testing inputs
