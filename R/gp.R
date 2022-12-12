@@ -3,14 +3,14 @@
 #' @description  Given standardized training data X, y, scaled data Xt, yt, noise level sigma2,
 #' covariance function k, covariance matrixes K, ks and returns mean functions fs, variance Vfs and log marginal likelihood logp.
 #' This function is based on Gaussian process regression algorithm from Rasmussen and Williams
-#' @param X inputs
-#' @param y targets
+#' @param X inputs, n by p matrix
+#' @param y targets, n by 1 vector
 #' @param k covariance function
 #' @param sigma2 noise level
-#' @param Xt test inputs
-#' @param yt test targets
-#' @param K covariance matrix between training data
-#' @param ks covariance matrix between testing data and training data
+#' @param Xt test inputs, nt by p matrix
+#' @param yt test targets, nt by 1 vector
+#' @param K covariance matrix between training data, n by n matrix
+#' @param ks covariance matrix between testing data and training data, nt by n matrix
 #'
 #' @return
 #'        fs mean function
@@ -89,18 +89,18 @@ gpr_standardized <- function(X, y, k, sigma2, Xt, yt, K, ks) {
 
 
 #' Standardize Input
-#'
-#' @description Standardize X, y, Xt, and yt based on mean and variance of X and y
-#' @param X original training inputs
-#' @param y original training targets
-#' @param Xt original testing inputs
-#' @param yt original testing targets
+#' @description Scale X and y to have mean of 0 and variance of 1. Scaled Xt based on the mean and
+#' variance of X. Scaled yt based on mean and variance of y.
+#' @param X original training inputs, n by p matrix
+#' @param y original training targets, n by 1 vector
+#' @param Xt original testing inputs, nt by p matrix
+#' @param yt original testing targets, nt by 1 vector
 #'
 #' @return
-#'        X scaled training inputs
-#'        y scaled training targets
-#'        Xt scaled testing inputs
-#'        yt scaled testing targets
+#'        X scaled training inputs, n by p matrix
+#'        y scaled training targets, n by 1 vector
+#'        Xt scaled testing inputs, nt by p matrix
+#'        yt scaled testing targets, nt by 1 vector
 #' @export
 #'
 #' @examples
@@ -129,12 +129,12 @@ standardize <- function(X, y, Xt, yt) {
 
 
 #
-#' Returns Euclidean distance between two input data
+#' Returns Euclidean distance
+#' @description retunrs euclidean distance between two input data
+#' @param x1 first data, n by 1 vector
+#' @param x2 second data, n by 1 vector
 #'
-#' @param x1 first data
-#' @param x2 second data
-#'
-#' @return r euclidean distance between first data and the second data
+#' @return r euclidean distance between first data and the second data, scalar
 #' @export
 #'
 #' @examples
@@ -151,11 +151,11 @@ get_r <- function(x1, x2) {
 
 #
 #' Square Exponential Kernel
+#' @description returns squared exponential kernel with length scale l
+#' @param l length scale parameter of squared exponential kernel, scalar
+#' @param r euclidean distance between two data points, scalar
 #'
-#' @param l length scale parameter of squared exponential kernel
-#' @param r euclidean distance between two data points
-#'
-#' @return covariance function with fixed hyperperameter l
+#' @return covariance function with fixed hyperparameter l, closure
 #' @export
 #'
 #' @examples
@@ -173,12 +173,12 @@ se_kernel <- function(l, r = 1) {
 
 
 #' Matern kernel
+#' @description returns matern kernel with parameter of length scale and smoothness
+#' @param l length-scale, scalar
+#' @param v smoothness, scalar
+#' @param r euclidean distance between two data points, scalar
 #'
-#' @param l length-scale
-#' @param v smoothness
-#' @param r euclidean distance between two data points
-#'
-#' @return covariance function with fixed parameter l and v
+#' @return covariance function with fixed parameter l and v, closure
 #' @export
 #'
 #' @examples
@@ -203,8 +203,8 @@ matern_kernel <- function(l, v, r = 1) {
 
 
 #' Exponential kernel
-#'
-#' @param l length scale
+#' @description  Returns expoential kernel with parameter of length scale
+#' @param l length scale, scalar
 #' @param r euclidean distance between two data points
 #'
 #' @return covariance function with fixed parameter l
@@ -226,12 +226,12 @@ exp_kernel <- function(l, r = 1) {
 
 
 #
-#' pick the kernel
-#' return kernel functions with hyperparemeters
-#' @param method a string indicates what function class to pick
-#' @param para_list a list of parameter that will be pass on to the kernel function
+#' Pick the kernel
+#' @description return kernel functions with hyperparemeters given
+#' @param method a string indicates what function class to pick, string
+#' @param para_list a list of parameter that will be pass on to the kernel function, list
 #'
-#' @return return one of the kernel functions with input parameter list
+#' @return return one of the kernel functions, closure
 #' @export
 #'
 #' @examples
@@ -259,15 +259,17 @@ pick_kernel <- function(para_list, method = c("se", "m", "exp")) {
 
 #
 #' Covariance Matrix
-#' gets covariance_matrix of K and Ks
+#' @description gets covariance_matrix of K and Ks. K is the covariance matrix of training inputs,
+#' Ks is the covariance matrix between training inputs and test data.
 #'
-#' @param X training inputs
-#' @param Xt testing inputs
-#' @param k covariance function
+#'
+#' @param X training inputs, n by n matrix
+#' @param Xt testing inputs, nt by n matrix
+#' @param k covariance function, closure
 #'
 #' @return
-#'     K covariance matrix of training input
-#'     Ks covariance matrix of trainign data and test data
+#'     K covariance matrix of training inputs
+#'     Ks covariance matrix of trainign data and test datas
 #' @export
 #'
 #' @examples
@@ -315,15 +317,15 @@ covariance_mats <- function(X, Xt, k) {
 }
 
 
-# sequence of k's to fit the model and compare different kernels performance
+#
 #' Gaussian Process Regression for a sequence of kernels
-#'
-#' @param X training inputs
-#' @param y training targets
-#' @param k list of covariance functions
-#' @param sigma2 noise level
-#' @param Xt testing inputs
-#' @param yt testing targets
+#' @description Gaussian process regression based on a sequence of kernels
+#' @param X training inputs, n by p matrix
+#' @param y training targets, n by 1 vector
+#' @param k list of covariance functions, list
+#' @param sigma2 noise level, positive float
+#' @param Xt testing inputs, nt by p matrix
+#' @param yt testing targets, nt by 1 vector
 #'
 #' @return
 #'        k: list of covariance functions, same as input
@@ -402,17 +404,18 @@ gpr_seq_kernels <- function(X, y, k, sigma2, Xt, yt) {
 
 #
 #' Gaussian Process Regression Cross Validation
-#'
-#' @param X training inputs
-#' @param y training targets
-#' @param k list of kernels
-#' @param sigma2 noise level
-#' @param num_folds number of folds
-#' @param fold_ids list of ids to indicate folds
+#' @description Split data into training data and testing data,then performan cross validations for a sequence of kernels,
+#'  returns aveage mean square error under each kernel and the original kernels.
+#' @param X training inputs, n by p matrix
+#' @param y training targets, n by 1 vector
+#' @param k list of kernels, list
+#' @param sigma2 noise level, positive float
+#' @param num_folds number of folds, interger
+#' @param fold_ids list of ids to indicate folds, n by 1 vector
 #'
 #' @return
-#'        cvm average mean square errors for each kernels
-#'        k original kernels
+#'        cvm average mean square errors for each kernels, vector with length of the number of kernels
+#'        k original kernels, list of clousures.
 #' @export
 #'
 #' @examples
